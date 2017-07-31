@@ -1,0 +1,1078 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass ctex-book
+\begin_preamble
+% 如果没有这一句命令，XeTeX会出错，原因参见
+% http://bbs.ctex.org/viewthread.php?tid=60547
+\DeclareRobustCommand\nobreakspace{\leavevmode\nobreak\ }
+\end_preamble
+\options UTF8
+\use_default_options true
+\maintain_unincluded_children false
+\language chinese-simplified
+\language_package none
+\inputencoding utf8-plain
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format pdf4
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 0
+\use_package mhchem 1
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\listings_params "basicstyle={\ttfamily}"
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part
+DEEPGREEN 安装
+\end_layout
+
+\begin_layout Chapter
+系统安装要求
+\end_layout
+
+\begin_layout Standard
+本章中的命令有些必须以root身份或通过sudo执行。在行命令下，如果shell提示符是#，表示需以root执行，如果shell提示符是$, 表示需要以
+ DEEPGREEN 安装用户 （假定 gpadmin）身份执行。
+\end_layout
+
+\begin_layout Section
+安装DEEPGREEN系统需求
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+系统配置要求
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="10" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="left" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+最低配置
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+备注
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+操作系统
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+CentOS/RHEL 6.x
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+建议 6.9+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+CentOS/RHEL 7.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+不支持 7.0-7.2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Ubuntu 14.04 LTS/16.04 LTS
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+文件系统
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+XFS，EXT3/4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+建议使用 XFS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+CPU
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+x86_64 with AVX
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+建议使用 XEON Haswell+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+如果使用虚拟机，HyperVisor需要支持AVX
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+内存
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+32GB／Server
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+存储
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+硬盘／SSD
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+网络
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Ethernet
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+集群内通信建议使用 10 GigE
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+DEEPGREEN操作系统进行配置
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 需要对操作系统进行如下配置。如无特别指出，需要在集群中所有机器上配置执行。所有命令都需要以root身份，或者通过 sudo.
+ 设置后系统可能需要重启方生效。
+\end_layout
+
+\begin_layout Subsection
+网络 disable SELinux, iptables, firewalld
+\end_layout
+
+\begin_layout Itemize
+在 /etc/selinux/config 中将 SELINUX 设为 disabled。以root 身份执行 sestatus 应显示 disabled
+\end_layout
+
+\begin_layout Itemize
+如果操作系统使用 iptables (CentOS 6.x), 使用如下命令 disable iptables。
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# /sbin/chkconfig iptables off
+\end_layout
+
+\begin_layout Plain Layout
+
+# /sbin/chkconfig --list iptables
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+如果操作系统使用firewalld, 使用如下命令，
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# systemctl stop firewalld.service
+\end_layout
+
+\begin_layout Plain Layout
+
+# systemctl disable firewalld.service
+\end_layout
+
+\begin_layout Plain Layout
+
+# systemctl status firewalld.service
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+设置 /etc/hosts, 确认集群中各个节点配置正确
+\end_layout
+
+\begin_layout Subsection
+设置 /etc/sysctl.conf
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+kernel.shmmax = 500000000 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.shmmni = 4096 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.shmall = 4000000000 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.sem = 250 512000 100 2048 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.sysrq = 1 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.core_uses_pid = 1 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.msgmnb = 65536 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.msgmax = 65536 
+\end_layout
+
+\begin_layout Plain Layout
+
+kernel.msgmni = 2048 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.ipv4.tcp_syncookies = 1
+\end_layout
+
+\begin_layout Plain Layout
+
+net.ipv4.ip_forward = 0 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.ipv4.conf.default.accept_source_route = 0 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.ipv4.tcp_tw_recycle = 1 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.ipv4.tcp_max_syn_backlog = 4096 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.ipv4.conf.all.arp_filter = 1 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.ipv4.ip_local_port_range = 1025 65535 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.core.netdev_max_backlog = 10000 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.core.rmem_max = 2097152 
+\end_layout
+
+\begin_layout Plain Layout
+
+net.core.wmem_max = 2097152 
+\end_layout
+
+\begin_layout Plain Layout
+
+vm.overcommit_memory = 2 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+设置 /etc/security/limits.conf
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+* soft nofile 65536
+\end_layout
+
+\begin_layout Plain Layout
+
+* hard nofile 65536
+\end_layout
+
+\begin_layout Plain Layout
+
+* soft nproc 131072
+\end_layout
+
+\begin_layout Plain Layout
+
+* hard nproc 131072
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+xfs 和 Linux IO 调度
+\end_layout
+
+\begin_layout Standard
+建议使用 xfs, 并在 /etc/fstab 中设置 mount 参数，例如
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+/dev/data /data xfs nodev,noatime,nobarrier,inode64 0 0
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+建议Linux IO 调度使用 deadline scheduler, 比如假设设备为 sda,
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# echo deadline > /sys/block/sda/queue/scheduler
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+其他
+\end_layout
+
+\begin_layout Standard
+CentOS/RHEL 7 使用的 systemd 会把 RemoveIPC 预设为 yes。 这使运行 gpinitsystem 时发生 semaphore
+ errors。 需要在 /etc/systemd/logind.conf 中 disable RemoveIPC，
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+RemoveIPC=no
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+安装
+\end_layout
+
+\begin_layout Subsection
+在MASTER上安装DEEPGREEN
+\end_layout
+
+\begin_layout Standard
+首先创建DEEPGREEN用户，假设用户名为 gpadmin。 按照操作系统，选取下载 deepgreendb.XXX.bin。以 gpadmin
+ 用户的身份执行安装文件
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+DEEPGREEN不支持以root身份安装
+\end_layout
+
+\end_inset
+
+，确认许可证， 指定安装路径。 安装后 source greenplum_path.sh, 设置合适的环境变量。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ bash ./deepgreendb.XXX.bin
+\end_layout
+
+\begin_layout Plain Layout
+
+$ source ./deepgreendb/greenplum_path.sh
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+在SEGMENT上安装，配置DEEPGREEN
+\end_layout
+
+\begin_layout Standard
+创建一个包含所有节点的文件 hostfile_exkeys, 文档按 Greenplum 约定假设MASTER 为 mdw, MASTER standby
+ smdw, SEGMENTS sdwN。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpseginstall -f hostfile_exkeys -u gpadmin -p mypasswd
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+检查安装正确。 如果提示password， 重新执行 gpssh-exkeys
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpssh -f hostfile_exkeys -e ls -l $GPHOME
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpssh-exkeys -f hostfile_exkeys
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+创建数据目录
+\end_layout
+
+\begin_layout Standard
+以root身份创建用户数据目录，并把所有者正确设置。以下假设目录设置在 /data 之下。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# mkdir /data/master
+\end_layout
+
+\begin_layout Plain Layout
+
+# chown gpadmin /data/master
+\end_layout
+
+\begin_layout Plain Layout
+
+#
+\end_layout
+
+\begin_layout Plain Layout
+
+# if there is master standby
+\end_layout
+
+\begin_layout Plain Layout
+
+# source deepgreendb/greenplum_path.sh
+\end_layout
+
+\begin_layout Plain Layout
+
+# gpssh -h standbyhost -e 'mkdir /data/master'
+\end_layout
+
+\begin_layout Plain Layout
+
+# gpssh -h standbyhost -e 'chown gpadmin /data/master'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+在各个SEGMENT创建SEGMENT 数据目录。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# source deepgreendb/greenplum_path.sh
+\end_layout
+
+\begin_layout Plain Layout
+
+# gpssh -f hostfile_segsonly -e 'mkdir /data/primary'
+\end_layout
+
+\begin_layout Plain Layout
+
+# gpssh -f hostfile_segsonly -e 'chown gpadmin /data/primary'
+\end_layout
+
+\begin_layout Plain Layout
+
+# 
+\end_layout
+
+\begin_layout Plain Layout
+
+# if has mirror
+\end_layout
+
+\begin_layout Plain Layout
+
+# gpssh -f hostfile_segsonly -e 'mkdir /data/mirror'
+\end_layout
+
+\begin_layout Plain Layout
+
+# gpssh -f hostfile_segsonly -e 'chown gpadmin /data/mirror'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+配置 ntp
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+On Master Only, edit /etc/ntp.conf
+\end_layout
+
+\begin_layout Plain Layout
+
+server ntpserver
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+On Master Standby /etc/ntp.conf
+\end_layout
+
+\begin_layout Plain Layout
+
+server mdw prefer
+\end_layout
+
+\begin_layout Plain Layout
+
+server ntpserver
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+On Segment Hosts /etc/ntp.conf
+\end_layout
+
+\begin_layout Plain Layout
+
+server mdw prefer
+\end_layout
+
+\begin_layout Plain Layout
+
+server smdw
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Run as root to sync clock.
+\end_layout
+
+\begin_layout Plain Layout
+
+# pgssh -f hostfile_allhosts -v -e 'ntpd'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+检查集群性能
+\end_layout
+
+\begin_layout Standard
+我们建议在这个时候使用 gpcheckperf 检查，测试硬件性能。
+\end_layout
+
+\begin_layout Subsection
+创建数据库集群
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Please refer to gpinitsystem documentation for how to create 
+\end_layout
+
+\begin_layout Plain Layout
+
+a cluster.conf configuration file
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+We suggeset using C as LC_COLLATE.
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpinitsystem -c cluster.conf -h hostfile --lc-collate=C
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+After gpinitsystem completed successfully, add to .bashrc
+\end_layout
+
+\begin_layout Plain Layout
+
+# assume cluster.conf set master data dir to dg-1
+\end_layout
+
+\begin_layout Plain Layout
+
+export MASTER_DATA_DIRECTORY=/data/master/dg-1
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+We suggest setup DEEPGREEN extensions to all database, run
+\end_layout
+
+\begin_layout Plain Layout
+
+$ dg setup -all template1
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Create a user database for convinience
+\end_layout
+
+\begin_layout Plain Layout
+
+$ createdb $USER
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

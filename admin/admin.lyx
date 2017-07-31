@@ -68,6 +68,7 @@
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
+\listings_params "basicstyle={\ttfamily}"
 \tracking_changes false
 \output_changes false
 \html_math_output 0
@@ -192,6 +193,12 @@ XDrive 支持灵活的第三方插件 （Plugin） 系统。 插件也支持并�
 \end_layout
 
 \begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "install/install.lyx"
+
+\end_inset
+
 
 \end_layout
 
