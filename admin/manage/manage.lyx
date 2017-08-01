@@ -1137,6 +1137,867 @@ Backup/Restore
 \end_layout
 
 \begin_layout Standard
+DEEPGREEN系统的镜像既可以在初始化(gpinitsystem)时配置，也可以在现有的系统上重 新配置(gpaddmirrors和gpinitstandb
+y)。本节讲述对于初始化时没有配置Mirror的系统 如何添加Mirror。 
+\end_layout
+
+\begin_layout Subsection
+设置Segment Mirror
+\end_layout
+
+\begin_layout Standard
+Segment Mirror允许在Primary失效时切换到Mirror。DEEPGREEN 缺省设置是在primary同一组机器上配置Mirror。还可以选择
+与primary完全不同的一组机器来配置Mirror Segment。
+\end_layout
+
+\begin_layout Standard
+在现有系统同一组机器中添加Mirror需要
+\end_layout
+
+\begin_layout Enumerate
+在机器上分配用以存储Mirror的数据存储空间 
+\end_layout
+
+\begin_layout Enumerate
+必须确保所有Segment主机之间已经建立了互信。 
+\end_layout
+
+\begin_layout Enumerate
+运行gpaddmirrors命令添加系统的Mirror。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpaddmirrors -p 10000
+\end_layout
+
+\end_inset
+
+-p参数加到Primary Segment Instance端口数字之上,作为Mirror Instance端口.
+\end_layout
+
+\begin_layout Standard
+在现有系统不同的一组机器上添加Mirror需要
+\end_layout
+
+\begin_layout Enumerate
+确保DEEPGREEN软件已经在所有主机上安装
+\end_layout
+
+\begin_layout Enumerate
+为所有Segment Mirror分配数据存储空间。 
+\end_layout
+
+\begin_layout Enumerate
+必须确保所有Segment主机之间已经建立了互信。 
+\end_layout
+
+\begin_layout Enumerate
+创建配置文件，该文件包含所有机器host， port， 数据目录。可以使用
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpaddmirrors -o configfile
+\end_layout
+
+\end_inset
+
+来创建一个配置文件模版。 配置文件格式为，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder=[filespace1_fsname[:filespace2_fsname:...]  mirror[content]=content:
+address:port:mir_replication_port: pri_replication_port:fselocation[:fselocation
+:...]
+\end_layout
+
+\end_inset
+
+例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder= mirror0=0:sdw1-1:52001:53001:54001:/gpdata/mir1/gp0 mirror1=1:sd
+w1-2:52002:53002:54002:/gpdata/mir1/gp1 mirror2=2:sdw2-1:52001:53001:54001:/gpda
+ta/mir1/gp2 mirror3=3:sdw2-2:52002:53002:54002:/gpdata/mir1/gp3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpaddmirrors -i mirror_config_file 
+\end_layout
+
+\end_inset
+
+来添加镜像
+\end_layout
+
+\begin_layout Subsection
+配置Master镜像
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN Master 的Standby既可以在初始化(gpinitsystem)时配置，也可以在现有的系 统上配置(gpinitstandby)。
+\end_layout
+
+\begin_layout Standard
+为已有系统增加Standby需要 
+\end_layout
+
+\begin_layout Enumerate
+确保Standby主机已经正确的安装配置DEEPGREEN软件，创建gpadmin用户。
+\end_layout
+
+\begin_layout Enumerate
+在当前Master主机上运行gpinitstandby命令
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s smdw 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+管理员可以使用 pg_stat_replication view 来查看镜像状态。 例如，如下查看walsender复制同步程序的状态。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql dbname -c 'SELECT procpid, state FROM pg_stat_replication;' 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+检测失效Segment
+\end_layout
+
+\begin_layout Standard
+如果开启了Mirror，在Primary失败时DEEPGREEN将自动切换到Mirror。通常Segment失败对于用户来说影响不大。如果在失败发生时，一个事务
+正在进行，该事务会被回滚，然后会在Segment自动重启后重试该事务。 这种情况管理员应设置监控，报警系统及时发现。
+\end_layout
+
+\begin_layout Standard
+如果由于某个Segment的失败导致了整个系统变得不可运行(如没配置Mirror， 或过多的机器失败），用户在尝试连接到数据库时会得到错误。客户端程序的错误信息
+可能会给出提示。例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ERROR: All segment databases are unavailable 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+FTSprobe 通过轮询监控各个Segment状态。 管理员可以通过 gp_segment_configuration 来查询Segment状态。
+ 可以看到Segment是 up／down， "change tracking", "resync", 或 "in-sync"。 失败的Segment可以用gp
+recoverseg来修复。 缺省gprecoverseg采用增量修复。 gprecoverseg 把segment状态设置为resync然后复制变化的数据。
+ 如果增量修复不成功，可以使用 -F 选项强制全Segment修复。
+\end_layout
+
+\begin_layout Standard
+下面一系列参数可以控制 FTS probe的行为，
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_threadcount 用于检测的线程数，缺省16.
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_interval 轮询间隔。缺省60， 最大值3600.
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_timeout 检测超时。缺省20， 最大值3600.
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_retries 检测重试次数。缺省5.
+\end_layout
+
+\begin_layout Description
+gp_log_fts 日志控制。 可取值 "off", "terse", "verbose", or "debug"。 缺省为 terse。
+\end_layout
+
+\begin_layout Description
+gp_segment_connect_timeout 允许镜像回应的最长时间，缺省180.
+\end_layout
+
+\begin_layout Standard
+除FTSprobe外，如果primary不能将数据复制到镜像，primary数据排队时间超过gp_segment_connect_timeout
+ 秒，则视为镜像失效。 镜像会被设为down，primary进入change tracking状态。
+\end_layout
+
+\begin_layout Subsection
+使用 gpstate 查看segment 状态
+\end_layout
+
+\begin_layout Enumerate
+在Master使用-e参数执行gpstate命令。这将显示Segments出错状态。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -e 
+\end_layout
+
+\end_inset
+
+处于Change Tracking状态表明对应的Mirror已经失败。 如果某个Instance不在其 preferred role，意味着其当前的运行状态与系
+统初始 化时的设置不同。这表示系统处于非平衡状态，一个Segment主机可能消耗更高的系统资源。
+\end_layout
+
+\begin_layout Enumerate
+要获得失败Instance的详细信息，可查看系统日志表 gp_segment_configuration。例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql -c "SELECT * FROM gp_segment_configuration WHERE status='d';" 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+对于失败的segment，其主机、端口、初始角色和数据目录等信息有助于确定segment所在的主机和位置，有助于诊断故障。
+\end_layout
+
+\begin_layout Enumerate
+查看Mirror segment的信息，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -m 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+从日志查看segment信息
+\end_layout
+
+\begin_layout Standard
+日志文件对于确定出错的原因可以提供更多的信息。Master和每个Segment的日志文件都位于数据目录下的pg_log目录里。Master的日志文件里包含较多的
+信息，一般应该首先检查Master日志文件。检查日志可以使用gplogfilter命令。如果需要检查Segment的日志，可以通过gpssh运行gplogfil
+ter。 例如，
+\end_layout
+
+\begin_layout Enumerate
+检查master日志里WARNING、ERROR、FATAL或PANIC级别的信息，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gplogfilter -t 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+使用gpssh检查Segment日志文件WARNING、ERROR、FATAL或 PANIC级别的信息，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpssh -f seg_hosts_file -e 'source  /usr/local/greenplum-db/greenplum_path.sh
+ ; gplogfilter -t  /data1/primary/*/pg_log/gpdb*.log' > seglog.out
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+修复Segment
+\end_layout
+
+\begin_layout Standard
+当Master无法连接到Segment后会在系统表中将该Segment标记为down。 如何修复这个Segment取决于Segment失败的原因和是否有Mirr
+or。Segment变得不可用有多种因素，例如，
+\end_layout
+
+\begin_layout Enumerate
+主机无法访问(网络硬件故障)。 
+\end_layout
+
+\begin_layout Enumerate
+Segment 未运行(无postgres进程)。 
+\end_layout
+
+\begin_layout Enumerate
+Segment 的数据目录损坏或丢失(数据无法访问、文件系统损坏、磁盘故障)。 
+\end_layout
+
+\begin_layout Standard
+对于这些情况的失败，下图展示了解决步骤，
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Segment 修复流程
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/recovermatrix.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Segment主机失败
+\end_layout
+
+\begin_layout Standard
+若整个Segment主机失败，将会导致多个Segment失败，该主机上的所有Primary 和Mirror都会被标记为失败。如果系统没有配置 Mirror，系统
+都将会自动停止运行。
+\end_layout
+
+\begin_layout Subsubsection
+系统有Mirror
+\end_layout
+
+\begin_layout Standard
+如果系统有Mirror， 恢复步骤为
+\end_layout
+
+\begin_layout Enumerate
+确保从Master主机可以连该Segment主机。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ ping failed_seg_host_address 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+找到Master无法连接到Segment主机的故障并排除。
+\end_layout
+
+\begin_layout Enumerate
+主机正常启动之后，确认连接正常。从Master主机执行gprecoverseg 命令恢复失败的segment。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+gprecoverseg 会唤醒失败的segment并开始寻找需要同步的文件。 这个过程需要一些时间。在此过程中，数据库会暂停写操作。
+\end_layout
+
+\begin_layout Enumerate
+在gprecoverseg完成之后，系统变为Resynchronizing状态，并开始拷贝变化的文件。此进程是在后台运行，期间系统处于可用状态。
+ 
+\end_layout
+
+\begin_layout Enumerate
+当同步完成后，系统将重新变为Synchronized状态。可运行gpstate命令确认状态。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -m 
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Subsubsection
+把Segment恢复成preferred role
+\end_layout
+
+\begin_layout Standard
+当Primary失效后，Mirror被激活并变为Primary。在执行gprecoverseg之后，当前作为Primary仍保持primary状态。原始的Pri
+mary 并没有恢复到系统初始化时的角色。这会导致 系统处于非平衡状态优点Segment主机可能消耗更高的系统资源。执行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -e 
+\end_layout
+
+\end_inset
+
+可以显示各个segment状态。 可使用如下步骤重新平衡系统。要恢复到平衡状态，所有的Segment都必须启动且完全处于已同步状态。在重新平衡期间，数据库会话会
+保持连接但正在运行的查询会取消。
+\end_layout
+
+\begin_layout Enumerate
+运行gpstate -m确认所有的Mirror处于已同步状态。如果任何的Mirror处(Resynchronizing状态，请等待知道它们完成。
+ 
+\end_layout
+
+\begin_layout Enumerate
+运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg -r 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+完成后，运行gpstate –e确认所有Instance已经恢复到preferred role。
+\end_layout
+
+\begin_layout Subsection
+双失败的恢复
+\end_layout
+
+\begin_layout Standard
+双失败指的是Primary与对应的Mirror一起失败。这种情况会在两个不同的Segment主机同时失败时发生。在出现双失效时，集群会停止服务。想要从双失效恢复
+，执行如下步骤
+\end_layout
+
+\begin_layout Enumerate
+重启集群
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstop -r 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在系统重启之后，运行gprecoverseg。
+\end_layout
+
+\begin_layout Enumerate
+gprecoverseg完成后，使用gpstate -m 确认Mirror的状态.
+\end_layout
+
+\begin_layout Enumerate
+如果仍然有Segment处于change tracking状态，运行 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg -F 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+如果仍不能成功，重新建立集群并从备份恢复数据。
+\end_layout
+
+\begin_layout Standard
+完全拷贝覆 盖的恢复 $ gprecoverseg -F 注意：使用-F参数会将失败的Instance数据完全清除并从配对的Instance完全复
+ 制所有数据。出现双失败的情况时上述步骤不确保一定可以恢复回来，如果一 致性数据遭到破坏或者事务ID发生紊乱，在尝试恢复之前还需要其他修复工作。
+\end_layout
+
+\begin_layout Subsection
+恢复无Mirror的系统 
+\end_layout
+
+\begin_layout Enumerate
+首先确认从Master主机可以连通Segment主机。
+\end_layout
+
+\begin_layout Enumerate
+找到Segment主机的故障，并排除。
+\end_layout
+
+\begin_layout Enumerate
+在Segment主机启动之后，确认可以连接。然后尝试重启集群。 
+\end_layout
+
+\begin_layout Enumerate
+运行gpstate确认所有Segment已经启动。
+\end_layout
+
+\begin_layout Subsection
+如果Segment Host无法恢复
+\end_layout
+
+\begin_layout Standard
+如果有Mirror，可以使用gprecoverseg从Mirror拷贝恢复到新的主机上。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg -i recover_config_file 
+\end_layout
+
+\end_inset
+
+recover_config_file文件格式为，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder=[filespace1_name[:filespace2_name:...]failed_host_address: port:fsel
+ocation [recovery_host_address:port:replication_port:fselocation [:fselocation:...]
+]
+\end_layout
+
+\end_inset
+
+例如如要恢复到一个不同的主机（假设没有除了缺省表空间pg_default之外的其他表空间） 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder=sdw5-2:50002:/gpdata/gpseg2 sdw9-2:50002:53002:/gpdata/gpseg2
+ 
+\end_layout
+
+\end_inset
+
+系统日志表gp_segment_configuration 和 pg_filespace_entry可以帮助确定Segment的配置，并依此做恢复方案。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT dbid, content, hostname, address, port,     replication_port,
+ fselocation as datadir     FROM gp_segment_configuration, pg_filespace_entry
+     WHERE dbid=fsedbid     ORDER BY dbid;
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Section
+修复Master
+\end_layout
+
+\begin_layout Standard
+在Master失效后 WAL同步程序会停止。可以用gpactivatestandby激活Standby。步骤如下，
+\end_layout
+
+\begin_layout Enumerate
+确认系统必须配置有Standby。
+\end_layout
+
+\begin_layout Enumerate
+在Standby主机上运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpactivatestandby -d /data/master/gpseg-1 
+\end_layout
+
+\end_inset
+
+一旦激活了Standby，它就成为集群新的Master。
+\end_layout
+
+\begin_layout Enumerate
+在激活之后，运行gpstate命令检查状态
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -f 
+\end_layout
+
+\end_inset
+
+新激活的Master应处于Active状态。 如果又还配置了一个新的 Standby主机，它应该在Passive状态。 如果没有配置新的standby，那么Ma
+ster standby应为Not Configured状态
+\end_layout
+
+\begin_layout Enumerate
+切换之后在新的Master主机上运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql dbname -c 'ANALYZE;' 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+作为可选项，可以配置一个新的Standby。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s new_standby_master_hostname 
+\end_layout
+
+\end_inset
+
+在当前活动的Master主机上运行这个 命令。例如： $ gpinitstandby -s new_standby_master_hostname
+\end_layout
+
+\begin_layout Subsection
+恢复 Master镜像
+\end_layout
+
+\begin_layout Standard
+在激活Master Standby之后，Standby成为新的Primary Master。它与原有的Primary Master功能和可靠性等价。管理员可以用
+gpinitstandby命令配置一个新的Standby。
+\end_layout
+
+\begin_layout Standard
+作为可选项，管理员可以将Master与Standby恢复到最原始的主机上。这个过程实质上是将Master与Standby交换角色。
+\end_layout
+
+\begin_layout Enumerate
+确保原始主机处于可靠的运行状态。那些导致失败的因素已经被彻底解决。 
+\end_layout
+
+\begin_layout Enumerate
+在原始主机上，mv或rm Master数据目录，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ mv /data/master/gpseg-1 /data/master/backup_gpseg-1 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在原始主机上建立standby
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s mdw 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+确认Standby状态为 In Sync。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -f 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在当前的Master主机(原始角色为Standby)上停止Master进程
+\end_layout
+
+\begin_layout Enumerate
+在原始Master主机上(当前为Standby)运行gpactivatestandby命令。
+\end_layout
+
+\begin_layout Enumerate
+运行gpstate命令检查状态，现在原始Master状态应为Active，而Standby状态应为Not Configured。
+\end_layout
+
+\begin_layout Enumerate
+在原来的Standby上，mv或rm Master数据目录，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ mv /data/master/gpseg-1 /data/master/backup_gpseg-1 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+激活原始standby。 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s smdw 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+Backup/Restore
+\end_layout
+
+\begin_layout Standard
+本章讲述DEEPGREEN的数据备份与恢复。定期备份数据库，在系统失败或者数据损坏时可以使用备份来恢复重建。另外还可以使用备份来把一个集群迁移到另外一个集群。
+\end_layout
+
+\begin_layout Section
+概述
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN提供了并行和非并行的Backup/Restore。 显然，并行方式没有瓶颈，扩展性好。
+\end_layout
+
+\begin_layout Subsection
+并行方法
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 
