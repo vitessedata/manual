@@ -1998,6 +1998,814 @@ DEEPGREEN提供了并行和非并行的Backup/Restore。 显然，并行方式�
 \end_layout
 
 \begin_layout Standard
+DEEPGREEN提供了一个并行备份命令gpcrondump。该命令同时备份Master和所有的Segment。该命令缺省设置在 db_dumps目录里创建备份
+文件。 在Master上，该命令创建的数个备份文件包含DDL语句和系统表等元数据。在Segment上，只创建一个数据文件。(比如gp_segment_confi
+guration)。所有一次的备份文件通过一个14位数字的时间戳来识别。 gprestore 可以并行从备份文件中恢复数据库。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+并行备份
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gp_dump.jpg
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+并行restore
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gp_restore.jpg
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+非并行方法
+\end_layout
+
+\begin_layout Standard
+用户仍然可以使用常规的PostgreSQL备份命令pg_dump和pg_dumpall。PostgreSQL的 备份工具将在Master主机上创建一个大的备份文
+件，包含所有SEGMENT的数据。这样的做法比并行方法慢很多。很多时候，Master主机上没有足够的磁盘空间来存储数据库的全部数据。pg_restore
+ 可以恢复pg_dump和pg_dumpall产生的数据。 注意这个方法建立的表丢掉了原来表的分布信息。 DEEPGREEN会创建一个缺省的分布。
+ 这可能不是最优的分布。
+\end_layout
+
+\begin_layout Standard
+另外一个有用的非并行从数据库导出数据的命令为SQL命令COPY TO。它允许将一张表的全部或者一部分导出，以文本文件的方式存储在Master主机。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+非并行方法 Backup/Restore
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/nonpar_restore.jpg
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+使用 gpcrondump
+\end_layout
+
+\begin_layout Standard
+gpcrondump可以备份数据库，数据和的对象，比如数据库角色和服务器配置等。 gpcrondump生成SQL文件，运行这些SQL就可以恢复数据库。MASTE
+R上的SQL用来恢复元数据，SEGMENT上的备份文件用来恢复数据
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+外部表只备份DDL，并不备份数据
+\end_layout
+
+\end_inset
+
+。还可以使用 -g 选择把集群配置文件也加入备份。
+\end_layout
+
+\begin_layout Standard
+gpcrondump只有一个必须的命令行选项，-x 数据库名。缺省会在 db_dumps／YYYYMMDD 目录中产生全备份。可以使用-u选项指定备份目标目录。
+\end_layout
+
+\begin_layout Subsection
+gpcrondump的下列选项可以指定备份的表
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Only backup a table.
+  -t can be specified many times
+\end_layout
+
+\begin_layout Plain Layout
+
+-t schema.tablename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Use a file to list tables to backup
+\end_layout
+
+\begin_layout Plain Layout
+
+--table-file=filename  
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude table.
+  -T can be specified many times.
+\end_layout
+
+\begin_layout Plain Layout
+
+-T schema.tablename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude tables in a file
+\end_layout
+
+\begin_layout Plain Layout
+
+--exclude-table-file=filename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Include only schema
+\end_layout
+
+\begin_layout Plain Layout
+
+-s schema
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+A file to list schemas
+\end_layout
+
+\begin_layout Plain Layout
+
+--schema-file=filename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude schema
+\end_layout
+
+\begin_layout Plain Layout
+
+-S schema
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude a list of schemas in a file
+\end_layout
+
+\begin_layout Plain Layout
+
+--exclude-schema-file=filename
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+增量备份
+\end_layout
+
+\begin_layout Standard
+gpcrondump可以用--incremental选项对append optimized表或分区表进行增量备份。一个全备份和之后的一系列增量备份形成一个备份集
+合，可以恢复数据库。 如果集群的SEGMENT配置发生了变化，那么不能使用增量备份，必须做全备份。 增量备份例子如下，
+\end_layout
+
+\begin_layout Standard
+首先需要做全备份，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x mytest -u /backupdir  
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+之后可以做增量备份，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x mytest -u /backupdir --incremental 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+使用Named pipe
+\end_layout
+
+\begin_layout Standard
+gpcrondump 和 gpdbrestore可以使用 named pipes。 当SEGMENT主机没有足够的磁盘空间时，可以使named
+ pipes之间备份到网络存储。
+\end_layout
+
+\begin_layout Enumerate
+运行 gpcrondump -K timestamp --list-backup-files.
+ 这会创建两个文本文件，每行是一个备份文件名， 例如
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gp_dump_20150519160000_pipes  
+\end_layout
+
+\begin_layout Plain Layout
+
+gp_dump_20150519160000_regular_files
+\end_layout
+
+\end_inset
+
+这些文件名会被用来创建named pipes。
+\end_layout
+
+\begin_layout Enumerate
+使用这个文件创建named pipes
+\end_layout
+
+\begin_layout Enumerate
+使用gpcrondump把备份写入这些named pipes
+\end_layout
+
+\begin_layout Enumerate
+使用gpdbrestore从这些named pipes中恢复数据库
+\end_layout
+
+\begin_layout Subsubsection
+例子
+\end_layout
+
+\begin_layout Standard
+下面例子使用named pipes和 netcat (nc)命令，将备份通过named pipes到TCP端口输出。远程进程可以从TCP接收备份文件。
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpcrondump -x testdb -K 20150519160000 --list-backup-files -u /backups
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ ls -lR /backups 
+\end_layout
+
+\begin_layout Plain Layout
+
+/backups: total 4 
+\end_layout
+
+\begin_layout Plain Layout
+
+drwxrwxr-x 3 gpadmin gpadmin 4096 May 19 21:49 db_dumps
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+/backups/db_dumps: 
+\end_layout
+
+\begin_layout Plain Layout
+
+total 4 drwxrwxr-x 2 gpadmin gpadmin 4096 May 19 21:49 20150519
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+/backups/db_dumps/20150519: total 8
+\end_layout
+
+\begin_layout Plain Layout
+
+-rw-rw-r-- 1 gpadmin gpadmin 256 May 19 21:49 gp_dump_20150519160000_pipes
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+-rw-rw-r-- 1 gpadmin gpadmin 391 May 19 21:49 gp_dump_20150519160000_regular_fil
+es
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ cat /backups/db_dumps/20150519/gp_dump_20150519160000_pipes  
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw1:/backups/db_dumps/20150519/gp_dump_0_2_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw2:/backups/db_dumps/20150519/gp_dump_1_3_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+mdw:/backups/db_dumps/20150519/gp_dump_-1_1_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+mdw:/backups/db_dumps/20150519/gp_dump_-1_1_20150519160000_post_data.gz
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+创建这些named pipes 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpssh -h sdw1 
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] mkdir -p /backups/db_dumps/20150519/ 
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] mkfifo /backups/db_dumps/20150519/gp_dump_0_2_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] cat /backups/db_dumps/20150519/gp_dump_0_2_20150519160000.gz | nc
+ -l 21000  
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] exit
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在远端创建接收进程
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+nc sdw1 21000 > gp_dump_0_2_20150519160000.gz 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x testdb -K 20150519160000 -u /backups 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+同样gpdbrestore可以从named pipes恢复数据库。过程大体和上面反向。
+\end_layout
+
+\begin_layout Section
+从并行备份文件恢复 
+\end_layout
+
+\begin_layout Standard
+从并行备份文件恢复数据库的依赖于几个因素。在决定使用恢复程序时，需先确定以下几个问题，
+\end_layout
+
+\begin_layout Enumerate
+备份文件在哪里？如果备份文件位于gp_dump生成时的原始位置，可以简单的使用gp_restore命令来恢复。如果备份文件已经移出集群归档，使用gpdbrest
+ore来恢复。 
+\end_layout
+
+\begin_layout Enumerate
+是否需要恢复整个系统，还是只恢复数据？如果仅需要恢复数据，可以使用gpdbrestore命令来恢复。如果需要重建整个集群，使gpinitsystem命令。
+ 
+\end_layout
+
+\begin_layout Enumerate
+是否恢复的系统与备份时的系统具有相同数量的SEGMENT？如果有相同数量，使用gpdbrestore命令来恢复。 如果不同，那么必须使用非并行恢复。
+\end_layout
+
+\begin_layout Section
+使用gpdbrestore 
+\end_layout
+
+\begin_layout Standard
+gpdbrestore 可以从gpcrondump产生的备份文件恢复数据库。支持如下选项，
+\end_layout
+
+\begin_layout Itemize
+-t timestamp 按时间戳恢复 
+\end_layout
+
+\begin_layout Itemize
+-b YYYYMMDD 指定备份文件日期
+\end_layout
+
+\begin_layout Itemize
+-s dbname 恢复指定数据库的最近备份
+\end_layout
+
+\begin_layout Itemize
+-R hostname:path 从远程指定目录恢复
+\end_layout
+
+\begin_layout Standard
+增量备份需要确定完全的备份集合。可以使用
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpdbrestore -t 20151013195916 --list-backup 
+\end_layout
+
+\end_inset
+
+来获得这个集合。下面这个例子把最新的备份恢复到一个叫做grants_snapshot的数据库中
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpdbrestore -s grants --redirect grants_snapshot 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+如果备份已归档，也仍可以使用gpdbrestore
+\end_layout
+
+\begin_layout Enumerate
+确认可以连接，可以使用ssh 
+\end_layout
+
+\begin_layout Enumerate
+确认目标数据库已创建
+\end_layout
+
+\begin_layout Enumerate
+使用-R选项恢复
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpdbrestore -R archive_host:/gpdb/backups/archive/20120714 -e dbname 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+恢复到配置不同的集群
+\end_layout
+
+\begin_layout Standard
+gpdbrestore要求恢复的系统必须与备份的系统具有相同数目的Segments 。不然，只能通过Master做非并行装载。要进行非并行装载，必须
+\end_layout
+
+\begin_layout Enumerate
+全部由gp_dump或gpcrondump操作生成的备份文件。Master的备份文件包 含了重建数据库对象的DDL。Segment的备份文件包含了用户数据。
+\end_layout
+
+\begin_layout Enumerate
+系统正在运行。 
+\end_layout
+
+\begin_layout Enumerate
+确认需要恢复的数据库已经被创建。 
+\end_layout
+
+\begin_layout Standard
+要恢复到配置不同的集群，
+\end_layout
+
+\begin_layout Enumerate
+首先确保具备了全部的备份文件。包括Master的备份文件 (gp_dump_1_1_<timestamp>， gp_dump_1_1_<timestamp>_p
+ost_data)和每 个SEGMENT的备份文件(gp_dump_0_2_<timestamp>， gp_dump_0_3_<timestamp>，gp_du
+mp_0_4_<timestamp>，等等)。所有的备份文件必须含有相同时间戳。缺省状态下，gp_dump在每个SEGMENT的数据目录生成备份文件，因此，Ma
+ster需要收集所有的备份文件。如果Master没有足够的磁盘空间，可以拷贝 一个SEGMENT的备份，装载，删除，再拷贝其他的。 
+\end_layout
+
+\begin_layout Enumerate
+确保在集群中需要恢复的数据库已经被创建。
+\end_layout
+
+\begin_layout Enumerate
+装载Master备份文件以恢复数据库对象 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_-1_1_20160714 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+装载每个Segment的备份文件以恢复数据。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_0_2_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_1_3_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_2_4_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_3_5_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+...
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+装载相关对象的文件，恢复数据库对象如索引、触发器、主键约束等
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_0_5_20160714_post_data 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+恢复 sequences的值
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gunzip -c path_to_master_dump_directory/gp_dump_-1_1_timestamp.gz | egrep
+ "SET search_path|SELECT pg_catalog.setval"      > schema_path_and_seq_next_val
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gunzip -c /data/gpdb/master/gpseg-1/db_dumps/20150112/gp_dump_-1_1_2015011214031
+6.gz    | egrep "SET search_path|SELECT pg_catalog.setval" > schema_path_and_seq_n
+ext_val 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+psql test_restore -f schema_path_and_seq_next_val 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
 
 \end_layout
 
