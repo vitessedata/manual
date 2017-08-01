@@ -1,0 +1,1144 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass ctex-book
+\begin_preamble
+% 如果没有这一句命令，XeTeX会出错，原因参见
+% http://bbs.ctex.org/viewthread.php?tid=60547
+\DeclareRobustCommand\nobreakspace{\leavevmode\nobreak\ }
+\end_preamble
+\options UTF8
+\use_default_options true
+\maintain_unincluded_children false
+\language chinese-simplified
+\language_package none
+\inputencoding utf8-plain
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format pdf4
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 0
+\use_package mhchem 1
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\listings_params "basicstyle={\ttfamily}"
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part
+管理 DEEPGREEN 集群
+\end_layout
+
+\begin_layout Standard
+在这个部分我们讲述DEEPGREEN系统管理员日常操作。
+\end_layout
+
+\begin_layout Chapter
+启动，停止数据库
+\end_layout
+
+\begin_layout Standard
+除非特别说明，本章中的命令都是由DEEPGREEN 用户（习惯上使用 gpadmin) 在MASTER上运行。这个用户应该 source greenplum_p
+ath.sh 并设定 MASTER_DATA_DIRECTORY 环境变量。
+\end_layout
+
+\begin_layout Section
+启动，重启, 改变系统设置， 和停止系统
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Start Deepgreen database
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstart
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Stop then restart Deepgreen database
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -r
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Reload changes in postgresql.conf and pg_hba.conf
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -u
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Stop stystem
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Stop system in fast mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -M fast
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+以维修状态 (Maintainance Mode) 启动数据库
+\end_layout
+
+\begin_layout Standard
+有些管理操作， 比如修改MASTER的数据字典，需要启动并对MASTER进行操作。 这时只应该启动MASTER而不应该启动SEGMENT。这种状态称之为以维修状
+态启动。 启动后，管理员必须设置 gp_session_role 才可以连接数据库进行操作。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Start database in maintainance mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstart -m
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Connect to database in mantainance mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ PGOPTIONS='-c gp_session_role=utility' psql postgres
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Restart database in production mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -mr
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+访问数据库
+\end_layout
+
+\begin_layout Standard
+本章讲述客户端软件如何连接数据库和建立会话。
+\end_layout
+
+\begin_layout Section
+建立会话
+\end_layout
+
+\begin_layout Standard
+客户端应该总是和MASTER建立会话。DEEPGREEN SEGMENT不能和客户端连接。客户端需要设定以下参数，这些参数如果没有设定，将会从客户的环境变量中获
+取。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+连接参数
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="4">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+参数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+描述
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+环境变量
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+默认值
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Applicaton name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+连接应用名称
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGAPPNAME
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Database name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+连接的数据库名
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGDATABASE
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Host name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+DEEPGREEN Master hostname
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGHOST
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+localhost
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Port
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+DEEPGREEN Master 端口
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGPORT
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5432
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+User name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+数据库内的用户名 （role)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGUSER
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+OS Username
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+支持的客户端程序
+\end_layout
+
+\begin_layout Itemize
+DEEPGREEN 支持使用 libpq 的程序，如数据库自带的客户端 psql。
+\end_layout
+
+\begin_layout Itemize
+DEEPGREEN 支持常见接口 JDBC， ODBC。 所有使用这些接口的程序都可以连接DEEPGREEN。
+\end_layout
+
+\begin_layout Itemize
+客户端可以自行实现 PostgreSQL协议，如纯 Javascript 的客户端
+\end_layout
+
+\begin_layout Section
+系统预装的客户端程序
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 预装如下常用客户端应用或管理程序。
+\end_layout
+
+\begin_layout Description
+createdb 创建新数据库
+\end_layout
+
+\begin_layout Description
+createlang 创建新的过程语言
+\end_layout
+
+\begin_layout Description
+createuser 创建新用户
+\end_layout
+
+\begin_layout Description
+dropdb 删除数据库
+\end_layout
+
+\begin_layout Description
+droplang 删除过程语言
+\end_layout
+
+\begin_layout Description
+dropuser 删除用户
+\end_layout
+
+\begin_layout Description
+psql 交互式终端
+\end_layout
+
+\begin_layout Description
+reindexdb 重建索引
+\end_layout
+
+\begin_layout Description
+vacuumdb 回收数据库存储空间，分析数据库统计信息
+\end_layout
+
+\begin_layout Standard
+所有这些程序都可以使用 -d, -h, -p, -U 或环境变量设定数据库名，host， 端口， 用户名这些连接参数。根据DEEPGREEN 连接设置，用户可能
+需要提供密码，或设置 ~/.pgpass文件。
+\end_layout
+
+\begin_layout Section
+支持的 API
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 支持如下 API。 一般来说，客户端需要下载，安装驱动程序。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+客户端 API和驱动程序
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+API
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+驱动程序
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+下载地址
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ODBC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+psqlODBC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+https://odbc.postgresql.org/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+JDBC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pgjdbc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+https://jdbc.postgresql.org/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Perl DBI
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pgperl
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+http://search.cpan.org/dist/DBD-Pg/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Python DBI
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pygresql
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+http://www.pygresql.org/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+libpq C API
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+libpq
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+预装
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+常见问题及解决方法
+\end_layout
+
+\begin_layout Subsection
+No pg_hba.conf entry for host or user
+\end_layout
+
+\begin_layout Standard
+MASTER 必须正确设置 pg_hba.conf （位于MASTER 数据目录中）。
+\end_layout
+
+\begin_layout Subsection
+网络配置错误
+\end_layout
+
+\begin_layout Standard
+确认网络设定正确
+\end_layout
+
+\begin_layout Subsection
+Too many clients already
+\end_layout
+
+\begin_layout Standard
+MASTER缺省最多同时可接受250个连接。可以通过修改 postgresql.conf 来增大 max_connections。一般来说，如果增大MASTER的
+max_connections值，那么SEGMENT上这个值也应该相应增大。
+\end_layout
+
+\begin_layout Chapter
+DEEPGREEN 配置
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 的系统配置文件存在各个节点数据目录中。DEEPGREEN的配置参数分两种， local和MASTER的： 每个SEGMENT和MASTER都
+需要尊从 postgresql.conf 里的local 参数，而只有MASTER才读取postgresql.conf里的MASTER参数，并在查询执行时将参数传给
+每个SEGMENT。
+\end_layout
+
+\begin_layout Section
+设置local 参数
+\end_layout
+
+\begin_layout Standard
+管理员应该使用gpconfig命令设置local参数。参数需重启数据库才生效。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpconfig -c gp_vmem_protect_limit -v 8192
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Restart database to take effect.
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -r
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+设置master参数
+\end_layout
+
+\begin_layout Standard
+可以通过修改MASTER的postgresql.conf在系统级设置master参数的确实值。 使用编辑器编辑master的这个文件。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+If the changed parameter does not need restart
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -u
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+If server restart is required
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -r
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+也可以通过SQL命令在数据库，Role， 或连接级设置
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Set parameter at database level via ALTER DATABASE, for example,
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER DATABASE mydb SET search_path to myschema;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Set at ROLE level, for example
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE me SET search_path to myshcema;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Set at connection level
+\end_layout
+
+\begin_layout Plain Layout
+
+=# SET statement_mem to '200MB';
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Reset session level parameter
+\end_layout
+
+\begin_layout Plain Layout
+
+=# RESET statement_mem;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+显示参数设置
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Show local parameters using gpconfig, for example
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpconfig --show max_connections
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Show master parameters using SQL, for example
+\end_layout
+
+\begin_layout Plain Layout
+
+$ psql -c 'SHOW ALL;'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+系统高可用性
+\end_layout
+
+\begin_layout Section
+高可用性综述
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 提供几种可选的高可用功能以应对不同的失败情况。 通过不同的冗余设计来保证系统使用， 以及失败后在可预期的时间内修复。
+\end_layout
+
+\begin_layout Subsection
+硬件 RAID
+\end_layout
+
+\begin_layout Standard
+可以使用RAID来应对磁盘或SSD损坏。
+\end_layout
+
+\begin_layout Subsection
+SEGMENT 镜像
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 数据存在多个SEGMENT里。 使用SEGMENT镜像时，每个SEGMENT都有 primary 或 mirror 一对镜像。
+ 每对镜像运行在不同的机器上，存储完全相同的数据。 镜像可以在系统初始化时在gpinitsystem 或 gpexpand 时设置。
+\end_layout
+
+\begin_layout Standard
+每对镜像有一个复制进程把primary的数据变化拷贝到mirror.
+ 当primary失效时，复制进程也就失败。 这时mirror的进入 change tracking 状态 – 表示mirror在primary失败时记录所有的
+数据变化。 管理员应及时对primary进行修复。 当primary重新接入集群，管理员应启动修复过程，系统进入 resynchronization
+ 状态。 修复进程把mirror记录的数据变化同步到primary上，结束后系统重新回到正常的synchronized状态。
+\end_layout
+
+\begin_layout Standard
+如果mirror失效，同样导致复制进程失效。 系统也进入 change tracking 状态。直至mirror修复，进入resynchronization,
+ 成功后回到正常的synchronized状态。
+\end_layout
+
+\begin_layout Standard
+有几种不同的方式把每对镜像配置到不同的机器，在一个机器失败时，不同的方式会带来不同的数据倾斜。缺省的方式是 group mirroring， 即一个机器上所有的
+Segments全部镜像到同样另外一台机器上。另一种方式是 spread mirroring，也就是把一台机器上的Segments均匀分布到不同的机器上。
+ 在一个机器失败时，spread mirroring 能更好的平均负载。 但Spread mirroring只能在机器多余每台机器上的Segments时才能采用
+。
+\end_layout
+
+\begin_layout Subsection
+Master 镜像
+\end_layout
+
+\begin_layout Standard
+高可用的系统需要配置Master镜像，primary和standby。 Master primary失败时，管理员可以使用 gpactivatestandby
+ 启动standby。网络管理可以设置虚拟IP地址，当primary失败时，把虚拟地址转给standby。Master 镜像采用 WAL（Write
+ Ahead Log） 复制。因为master并不存有用户数据，master mirror 只复制系统元数据。
+\end_layout
+
+\begin_layout Subsection
+失效检测与系统修复
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 的Postgres进程生成一个叫 ftsprobe 的子进程来检测失效。ftsprobe 定时扫描整个集群来检测失败的节点。
+ 管理员可以指定扫描的频率。ftsprobe 不能连接到一个segment的时候，将这个segment 在系统表里的状态置为 down。 这个segment
+ 的状态会一直是 down，直至管理员修复。
+\end_layout
+
+\begin_layout Standard
+有镜像时，当primary失效时，系统会自动启用mirror.
+ 系统保持功能正常。 管理员应尽快使用 gprecoverseg 对失效Segment进行修复。 可以在系统工作时对segment进行修复。
+\end_layout
+
+\begin_layout Standard
+无镜像时，系统会自行停止。 管理员需手动对Segment进行修复，方能重新启动系统。
+\end_layout
+
+\begin_layout Subsection
+双集群
+\end_layout
+
+\begin_layout Standard
+也可以配置两个相同的集群，存储同样的数据。一种做法是当ETL的时候，应该并行进行俩个ETL过程。 另一种做法是通过 backup/restore
+ primary 集群中的数据导入 standby 集群。第二种做法数据同步的时间要相对长一些，但对应用层的影响较小。
+\end_layout
+
+\begin_layout Subsection
+Backup/Restore
+\end_layout
+
+\begin_layout Standard
+定时使用 gpcrondump 来 backup数据库可保护数据。分离的，异地的，安全存储是数据安全的一个重要的设计考虑。DEEPGREEN 支持对
+ append-optimized 表进行增量backup。 对于heap表，只支持全表的backup。
+\end_layout
+
+\begin_layout Section
+设置镜像
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_body
+\end_document
