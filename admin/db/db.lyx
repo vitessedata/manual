@@ -1,0 +1,359 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass ctex-book
+\begin_preamble
+% 如果没有这一句命令，XeTeX会出错，原因参见
+% http://bbs.ctex.org/viewthread.php?tid=60547
+\DeclareRobustCommand\nobreakspace{\leavevmode\nobreak\ }
+\end_preamble
+\options UTF8
+\use_default_options true
+\maintain_unincluded_children false
+\language chinese-simplified
+\language_package none
+\inputencoding utf8-plain
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format pdf4
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 0
+\use_package mhchem 1
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\listings_params "basicstyle={\ttfamily}"
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part
+使用数据库
+\end_layout
+
+\begin_layout Standard
+本节中的主题介绍如何创建和管理数据库对象并操纵数据库中的数据。 也描述了并行数据加载。
+\end_layout
+
+\begin_layout Chapter
+定义数据库对象 
+\end_layout
+
+\begin_layout Standard
+数据库中的使用数据定义语言（DDL）创建和管理数据库对象。DEEPGREEN 的数据库，Schema， 等于PostgreSQL并没有不同。但表的DDL与Pos
+tgreSQL比较，有更多的选项和功能。
+\end_layout
+
+\begin_layout Section
+创建和管理表
+\end_layout
+
+\begin_layout Standard
+DeepGreen数据库表与任何关系数据库中的表相似，只是表行分布在系统中的Segment。 创建表时，可以指定表的分发策略。CREATE TABLE命令创建一
+个表并定义其结构。 创建表时，您可以定义：
+\end_layout
+
+\begin_layout Itemize
+表的列及其关联的数据类型。
+\end_layout
+
+\begin_layout Itemize
+用于限制列或表可以包含的数据的任何表或列约束。
+\end_layout
+
+\begin_layout Itemize
+该表的分发策略决定了数据库如何划分数据。 
+\end_layout
+
+\begin_layout Itemize
+表的存储方式。
+\end_layout
+
+\begin_layout Itemize
+大表的分区策略。 
+\end_layout
+
+\begin_layout Subsection
+选择列数据类型 
+\end_layout
+
+\begin_layout Standard
+列的数据类型决定列可以包含的数据值的类型。选择使用尽可能少的空间但仍然可以容纳您的数据并最有效地约束数据的数据类型。
+\end_layout
+
+\begin_layout Standard
+对于包含文本数据的表列，请指定数据类型VARCHAR或TEXT。不建议指定数据类型CHAR。
+\end_layout
+
+\begin_layout Standard
+使用最小的数字数据类型，例如，使用BIGINT适用于INT或SMALLINT的数据会浪费存储空间。如果数据值值可能会扩大，从较小的数据类型更改为较大的数据类型是
+比较昂贵的。这时，较大的数据类型可能是更好的长期选择。
+\end_layout
+
+\begin_layout Standard
+对于计划在跨表连接中使用的列，请使用相同的数据类型。跨表连接通常使用一个表中的主键和另一个表中的外键。当数据类型不同时，数据库必须转换类型，以便可以正确比较数据
+值。 这会增加不必要的开销。
+\end_layout
+
+\begin_layout Subsection
+设置约束
+\end_layout
+
+\begin_layout Standard
+您可以在列和表上定义约束以限制表中的数据。 DeepGreen 数据库支持的约束与PostgreSQL相同，但有一些限制，包括：
+\end_layout
+
+\begin_layout Itemize
+CHECK约束只能指向本表。 
+\end_layout
+
+\begin_layout Itemize
+UNIQUE和PRIMARY KEY约束必须与其表的分布键和分区键（如果有的话）兼容。
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+AO 表不支持 UNIQUE 和 PRIMARY KEY 约束
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+DDL允许有FOREIGN KEY约束，但并不强制。 
+\end_layout
+
+\begin_layout Itemize
+分区表上定义的约束会被应用于整个表。 不能定义只在一个单独分区表上的约束。
+\end_layout
+
+\begin_layout Subsection
+选择分布
+\end_layout
+
+\begin_layout Standard
+所有的表都是分布式的。 创建或更改表时，可以选择指定DISTRIBUTED BY （hash distribution） 或DISTRIBUTED
+ RANDOMLY（round-robin distribution）。 选择分布方式时主要有以下考量。
+\end_layout
+
+\begin_layout Itemize
+为了获得最佳性能，所有Segment应包含大体相等的数据部分。如果数据不平衡或偏斜，则具有更多数据的Segment就比较慢。最好选择每个记录唯一的分布键，例如主
+键。 
+\end_layout
+
+\begin_layout Itemize
+本地操作比分布式操作快。如果与连接，排序或聚合操作相关联的工作在本地完成，查询处理速度最快。如果系统需要在segment间重新分布数据，就会效率较低。
+\end_layout
+
+\begin_layout Itemize
+为了获得最佳性能，所有Segment应处理大体相等份额查询工作负载。如果表的数据分发策略和查询不匹配，查询工作负载可能会发生倾斜。
+\end_layout
+
+\begin_layout Section
+选择表的存储方式
+\end_layout
+
+\begin_layout Subsection
+堆存储 (Heap)
+\end_layout
+
+\begin_layout Standard
+默认情况下，DeepGreen 数据库使用与PostgreSQL相同的堆存储模型。 堆表存储最适合使用OLTP类型的工作负载，其中数据在初始加载后经常被修改。
+ UPDATE和DELETE操作需要存储行级版本信息，以确保可靠的数据库事务处理。 堆表最适合于较小的表，它们在最初加载之后经常更新。
+\end_layout
+
+\begin_layout Subsection
+Append Optimized 
+\end_layout
+
+\begin_layout Standard
+AO表存储最适合数据仓库环境中的事实表。 事实表通常是系统中最大的表。 事实表通常分批加载并以只读查询访问。 大型事实表移动到AO存储模型中消除了每行更新可见性
+信息的存储开销，每行约20个字节.
+ AO 表的存储模型针对批量数据加载进行了优化。 不建议使用单行INSERT语句。
+\end_layout
+
+\begin_layout Subsection
+行存和列存
+\end_layout
+
+\begin_layout Standard
+DeepGreen 提供行存，列存或两者的组合。 
+\end_layout
+
+\begin_layout Itemize
+行存：适于OLTP类型的工作负载以及单行索引查询。
+\end_layout
+
+\begin_layout Itemize
+列存：适于对少数列数据聚合等OLAP型工作负载。
+\end_layout
+
+\begin_layout Standard
+对于大多数通用或混合工作负载，行存提供了灵活性和性能的最佳组合。 但是，有一些时候，列存模型提供更高效的I / O和存储。 在决定表的存储方向时，请考虑以下要求
+，
+\end_layout
+
+\begin_layout Itemize
+更新数据。如果经常更新数据，请选择一个行存堆表。列存只能在AO表上使用。 
+\end_layout
+
+\begin_layout Itemize
+频繁插入。如果行被频繁地插入到表中，那么考虑一个行存的模型。列存未针对少量，但频繁写操作进行优化。
+\end_layout
+
+\begin_layout Itemize
+查询中请求的列数。如果您通常要求SELECT列表中的所有，或大部分列，请考虑面向行存。列存的表最适合于在少数几个列上的查询。
+\end_layout
+
+\begin_layout Itemize
+表中的列数。当同时需要许多列时，或者当表的行大小相对较小时，面向行的存储效率更高。面向列的表可以在具有许多列的表上提供更好的查询性能。 
+\end_layout
+
+\begin_layout Itemize
+压缩。每列数据具有相同的数据类型，许多压缩方案列存压缩更好。
+\end_layout
+
+\begin_layout Subsection
+压缩 （只适用于AO表）
+\end_layout
+
+\begin_layout Standard
+在DeepGreen数据库中AO表可有两种类型的压缩：
+\end_layout
+
+\begin_layout Itemize
+表级压缩应用于整个表。 
+\end_layout
+
+\begin_layout Itemize
+列级压缩应用于特定列。 
+\end_layout
+
+\begin_layout Standard
+DeepGreen 支持 ZLIB， LZ4， ZSTD 压缩算法。相比，LZ4 最快，但压缩比不如ZLIB和ZSTD。 ZSTD 和 ZLIB压缩比类似，但Z
+STD要更快。
+\end_layout
+
+\begin_layout Section
+大表分区
+\end_layout
+
+\begin_layout Standard
+表分区可以支持非常大的表，例如事实表，通过逻辑上将它们分割成更小，更易于管理的部分。 分区表可以通过允许DeepGreen查询优化器仅扫描满足给定查询所需的数据
+，而不是扫描大表的所有内容，从而提高查询性能。
+\end_layout
+
+\begin_layout Subsection
+简介
+\end_layout
+
+\begin_layout Standard
+分区不会改变数据在Segment上的分布。 无论是否分区，DeepGreen都将表分布到所有的Segment上以启用并行查询处理。 表分区逻辑上划分大表，以提高
+查询性能，并帮助数据仓库维护任务，例如将旧数据从数据仓库中滚出。
+\end_layout
+
+\begin_layout Standard
+DeepGreen支持：
+\end_layout
+
+\begin_layout Itemize
+范围划分：根据数值范围（如日期或价格）划分数据。 
+\end_layout
+
+\begin_layout Itemize
+列表分区：根据值列表划分数据，如销售地区或产品线。 
+\end_layout
+
+\begin_layout Itemize
+两种类型的组合。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+分布与分区
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/partitions.jpg
+	width 80col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

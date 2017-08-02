@@ -212,5 +212,25 @@ filename "manage/manage.lyx"
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "access/access.lyx"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "db/db.lyx"
+
+\end_inset
+
+
+\end_layout
+
 \end_body
 \end_document
