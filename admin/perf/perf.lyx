@@ -735,5 +735,1543 @@ Segment主机内存
 到资源队列分配给查询的内存的一部分。如果一个算子无法在分配给它的内存中执行其所有工作，则会将数据缓存在磁盘上的溢出文件中。
 \end_layout
 
+\begin_layout Subsection
+配置Segment 主机内存的选项
+\end_layout
+
+\begin_layout Standard
+主机内存是Segment 主机上所有应用程序共享的总内存。可以使用以下任一方法配置主机内存量： 
+\end_layout
+
+\begin_layout Itemize
+为节点添加更多的RAM以增加物理内存。 
+\end_layout
+
+\begin_layout Itemize
+增加分配交换空间以增加虚拟内存的大小。 
+\end_layout
+
+\begin_layout Itemize
+设置内核参数vm.overcommit_memory和vm.overcommit_ratio来配置操作系统如何处理大内存分配请求。 
+\end_layout
+
+\begin_layout Standard
+物理RAM和操作系统配置通常由平台团队和系统管理员管理。为操作系统和其他进程预留的内存量取决于工作负载。操作系统内存的最低建议为32GB，但如果数据库中并发性较
+高，则可能需要增加到64GB。
+\end_layout
+
+\begin_layout Standard
+应该始终将vm.overcommit_memory内核参数设置为2，这是DeepGreen数据库的唯一安全值。
+\end_layout
+
+\begin_layout Standard
+vm.overcommit_ratio内核参数设置用于应用程序进程的RAM百分比，其余为操作系统保留。 Red Hat的默认值为50（50％）。
+ 将此参数设置得太高可能会导致为操作系统保留的内存不足，这可能导致Segment主机故障或数据库故障。 默认设置为50，通常是安全的，但很保守。
+ 当增加vm.overcommit_ratio时，记住要始终为操作系统活动保留一些内存。
+\end_layout
+
+\begin_layout Standard
+要计算vm.overcommit_ratio的安全值，首先使用以下公式确定可用于DeepGreen数据库进程的总内存（称为gp_vmem）：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gp_vmem = ((SWAP + RAM) – (7.5GB + 0.05 * RAM)) / 1.7
+\end_layout
+
+\begin_layout Plain Layout
+
+vm.overcommit_ratio = (RAM - 0.026 * gp_vmem) / RAM
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+配置数据库内存 
+\end_layout
+
+\begin_layout Standard
+数据库内存是所有数据库Segment可用的内存量。
+\end_layout
+
+\begin_layout Standard
+设置数据库集群时，您可以确定为每个主机运行的Primary Segment数量和为每个Segment 分配的内存量。根据CPU核心，物理RAM数量和工作负载特性
+，Segment 数通常在4到32之间。当Segment镜像启用时，需要考虑一个Segment 主机失败时，其它主机运行的Segment会增加。例如，如果使用默
+认Group Mirroring 镜像配置，则主机故障会使镜像主机的Segment 数量增加一倍。Spread Mirroring 允许为每个Segment分配
+更多的内存。例如，如果使用每个主机4个主机和每个主机8个Primary Segment，则单个主机故障将导致块中的其他主机最多有11个Segment，
+ 而默认的Group Mirroring 则会导致一个主机上有16个Segment。
+\end_layout
+
+\begin_layout Standard
+gp_vmem_protect_limit值是为每个Segment分配的内存量。可以用于所有Greenplum数据库进程的最大内存量除以故障期间的主要Segme
+nt数计算。使用以下公式计算gp_vmem_protect_limit的安全性值。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gp_vmem = ((SWAP + RAM) – (7.5GB + 0.05 * RAM)) / 1.7 
+\end_layout
+
+\begin_layout Plain Layout
+
+gp_vmem_protect_limit = gp_vmem / max_acting_primary_segments 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+另一个重要的数据库服务器配置参数是statement_mem。 此参数设置要执行查询的最大内存量。 要确定此参数的值，请将每个Segment（gp_vmem_p
+rotect_limit）的内存量减去10％的安全余量，除以并发执行的最大查询数。 默认的Greenplum数据库资源队列允许最多20个并发查询。
+ 这里有一个公式来计算statement_mem：
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+(gp_vmem_protect_limit * .9 ) / max_expected_concurrent_queries 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+使用资源队列管理工作负载的概述
+\end_layout
+
+\begin_layout Standard
+资源队列是管理数据库系统中并发程度的主要工具。资源队列使用CREATE RESOURCE QUEUE SQL语句创建。您可以使用它们来管理可以并发执行的活动查询
+的数量，每种类型的查询分配的内存量以及查询的相对优先级。资源队列还可以防止将消耗太多资源并降低整体系统性能的查询。
+\end_layout
+
+\begin_layout Standard
+每个数据库角色与单个资源队列相关联; 多个角色可以共享相同的资源队列。角色使用CREATE ROLE或ALTER ROLE语句的RESOURCE
+ QUEUE子句分配给资源队列。如果未指定资源队列，该角色与默认资源队列pg_default相关联。
+\end_layout
+
+\begin_layout Standard
+当用户提交执行查询时，将根据资源队列的限制对查询进行评估。如果查询不会导致队列超出其资源限制，则该查询将立即运行。如果查询导致队列超出其限制（例如，如果当前正在
+使用查询以超出最大允许值），则查询必须等到队列资源空闲才能运行。查询以FIFOP的方式排队。如果启用查询优先级，系统则定期评估工作负载，并根据查询优先级重新分配
+处理资源。SUPERUSER属性的角色不受资源队列限制。超级用户查询始终立即运行，不受资源队列施加的限制。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+资源队列
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/resource_queues.jpg
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+资源队列定义了类似资源需求的查询类。 管理员应为各种类型的工作负载创建资源队列。 例如，您可以为下列类别的查询创建资源队列，对应于不同的服务级别：
+\end_layout
+
+\begin_layout Itemize
+ETL查询 
+\end_layout
+
+\begin_layout Itemize
+报表查询 
+\end_layout
+
+\begin_layout Itemize
+执行查询 
+\end_layout
+
+\begin_layout Standard
+资源队列可定义以下特征：
+\end_layout
+
+\begin_layout Description
+MEMORY_LIMIT 队列中所有查询使用的内存量（每个Segment）。例如，在ETL队列上将MEMORY_LIMIT设置为2GB允许ETL查询在每个Seg
+ment中使用高达2GB的内存。 
+\end_layout
+
+\begin_layout Description
+ACTIVE_STATEMENTS 队列的最大并发查询。超出时，新的查询必须等待。默认情况下，每个查询使用相等的内存量。 例如，pg_default资源队列的A
+CTIVE_STATEMENTS = 20。 
+\end_layout
+
+\begin_layout Description
+PIRORITY 优先级。 查询的相对CPU使用率， 可能是：LOW，MEDIUM，HIGH，MAX。默认级别为MEDIUM。查询优先级机制监控系统中运行的所有
+查询的CPU使用情况，并调整每个查询的CPU使用率以符合其优先级。 
+\end_layout
+
+\begin_layout Standard
+数据库系统的默认配置pg_default资源队列。 pg_default资源队列的ACTIVE_STATEMENTS设置为20，没有MEMORY_LIMIT，中
+等优先级，没有设置MAX_COST。 这意味着所有查询都被接受并立即运行，优先级相同，没有内存限制; 但是，只有二十个查询可以同时执行。
+\end_layout
+
+\begin_layout Description
+资源队列允许的并发查询数取决于是否设置了MEMORY_LIMIT参数：
+\end_layout
+
+\begin_layout Itemize
+如果没有为资源队列设置MEMORY_LIMIT，则每个查询分配的内存量是statement_mem服务器配置参数的值。 资源队列可以使用的最大内存是statem
+ent_mem和ACTIVE_STATEMENTS的乘积。 
+\end_layout
+
+\begin_layout Itemize
+当资源队列中设置了一个MEMORY_LIMIT时，队列可以同时执行的查询数量受到队列可用内存的限制。
+\end_layout
+
+\begin_layout Standard
+系统许可的查询获得分配一定量的内存，并根据此量，生成查询计划树。树的每个节点都是一个算子，例如排序或散列连接。。如果计划中有大量的算子，内存不足时查询将被拒绝。
+算子确定是否可以在分配的内存中完成其任务，是否必须将数据写到磁盘上的工作文件中。分配和控制每个算子使用的内存量的机制称为内存配额。
+\end_layout
+
+\begin_layout Standard
+不是所有通过资源队列提交的所有SQL语句都对队列限制进行评估的。默认情况下仅对SELECT，SELECT INTO，CREATE TABLE AS
+ SELECT和DECLARE CURSOR语句进行限制。如果服务器配置参数resource_select_only设置为off，还将对INSERT，UPDAT
+E和DELETE语句进行评估限制。
+\end_layout
+
+\begin_layout Standard
+此外，EXPLAIN ANALYZE命令的SQL语句不受限。
+\end_layout
+
+\begin_layout Subsection
+资源队列示例 
+\end_layout
+
+\begin_layout Standard
+默认资源队列pg_default允许最多20个活动查询，并为每个查询分配相同的内存量。 对于生产系统来说，这通常不够。 为了确保系统满足性能期望，管理员可以定义
+查询类，并配置最适合该类查询的并发性，内存和CPU的资源队列。
+\end_layout
+
+\begin_layout Standard
+下图显示了将gp_vmem_protect_limit设置为8GB的数据库系统的示例资源队列配置：
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+资源队列示例
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/resource_queue_examp.png
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+该示例具有三类具有不同特征和服务级别协议（SLA）的查询。 为它们配置了三个资源队列。 Segment 的一部分内存被保留作为安全余量。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+资源队列示例配置值
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="4">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+资源队列
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+语句数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+内存限制
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+每个查询内存
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ETL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2GB
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+667MB
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Reporting
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3GB
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+429MB
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Executive
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.4GB
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.4GB
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+例子分配给队列的总内存是6.4GB，即，由gp_vmem_protect_limit服务器配置参数定义的Segment Host 上内存的80％。
+ 预留了20％的安全裕度可以容纳一些需要内存稍多的查询。
+\end_layout
+
+\begin_layout Section
+内存限制如何工作 
+\end_layout
+
+\begin_layout Standard
+在资源队列上设置MEMORY_LIMIT，限制了通过队列提交的所有活动查询在Segment上消耗的最大内存量。分配给查询的内存量是从队列内存限制除以活动语句计算
+得出的。 例如，如果队列的内存限制为2000MB，活动语句限制为10，则通过队列提交的每个查询将分配200MB的内存。也可以使用statement_mem服务器
+配置参数，在每个查询的基础上覆盖默认内存分配。一旦查询开始执行，它将其分配的内存保存在队列中，直到完成。
+\end_layout
+
+\begin_layout Standard
+您可以使用statement_mem服务器配置参数来覆盖当前资源队列设置的内存限制。在会话级别，可以将statement_mem增加到资源队列的MEMORY_L
+IMIT。这将允许单个查询使用为整个队列分配的所有内存，而不影响其他资源队列。
+\end_layout
+
+\begin_layout Standard
+statement_mem的值不能超过max_statement_mem配置参数。对于在MEMORY_LIMIT设置的资源队列中的查询，statement_me
+m的最大值为min（MEMORY_LIMIT，max_statement_mem）。当查询被允许时，队列会从MEMORY_LIMIT中减去分配给它的内存。如果M
+EMORY_LIMIT耗尽，则同一资源队列中的新查询必须等待，哪怕尚未达到ACTIVE_STATEMENTS限制。
+\end_layout
+
+\begin_layout Standard
+例如，考虑一个名为adhoc的资源队列，具有以下设置： 
+\end_layout
+
+\begin_layout Itemize
+MEMORY_LIMIT是1.5GB 
+\end_layout
+
+\begin_layout Itemize
+ACTIVE_STATEMENTS为3 
+\end_layout
+
+\begin_layout Standard
+默认情况下，提交到队列的每个语句都分配了500MB的内存。 现在考虑以下一系列事件： 
+\end_layout
+
+\begin_layout Enumerate
+用户ADHOC_1提交查询Q1，将STATEMENT_MEM覆盖为800MB。 Q1进入系统执行。 
+\end_layout
+
+\begin_layout Enumerate
+用户ADHOC_2提交查询Q2，使用默认的500MB。 
+\end_layout
+
+\begin_layout Enumerate
+在Q1和Q2仍在运行的情况下，用户ADHOC3使用默认的500MB提交查询Q3。 查询Q1和Q2使用了1300MB的队列1500MB。 因此，Q3必须等待Q1或
+Q2完成才能运行。
+\end_layout
+
+\begin_layout Standard
+如果队列中没有设置MEMORY_LIMIT，则在所有ACTIVE_STATEMENTS都被使用之前，查询将被允许，每个查询都可以设置任意高的statement_
+mem。 这可能导致使用无限量内存的资源队列。
+\end_layout
+
+\begin_layout Section
+优先级如何工作
+\end_layout
+
+\begin_layout Standard
+MEMORY_LIMIT和ACTIVE_STATEMENTS设置它们确定查询是否将被允许进入队列并执行。资源队列的PRIORITY设置不同，PRIORITY设置
+在查询执行开始后起作用。执行中的查询共享可用CPU资源，是由资源队列的优先级设置确定。当来自高优先级队列的语句开始执行时，它可能要求更多的可用CPU共享，减少分
+配给具有较低优先级设置的队列中已运行语句。
+\end_layout
+
+\begin_layout Standard
+查询的大小或复杂性不会影响CPU的分配。如果一个简单，低成本的查询与大型复杂查询同时运行，并且其优先级设置相同，则它们将被分配相同的可用CPU资源份额。当新的查
+询变为活动状态时，将重新计算CPU共享，但相同优先级的查询仍然具有相等数量的CPU资源。
+\end_layout
+
+\begin_layout Standard
+例如，管理员创建三个资源队列：业务分析人员提交的正在进行的查询的adhoc，计划报告作业的报告， 以及由执行用户角色提交的查询。管理员希望确保报告作业不受特设分
+析师查询的不可预测的资源需求的严重影响。此外，管理员希望确保由执行角色提交的查询分配CPU份额。因此，资源队列优先级设置如下所示： 
+\end_layout
+
+\begin_layout Itemize
+adhoc - LOW
+\end_layout
+
+\begin_layout Itemize
+报告 - HIGH
+\end_layout
+
+\begin_layout Itemize
+执行 - MAX 
+\end_layout
+
+\begin_layout Standard
+在运行时，活动语句的CPU共享由这些优先级设置确定。如果来自报告队列的查询1和2同时运行，则它们具有相等的CPU份额。当一个ad-hoc查询变为活动状态时，它会
+占用较小的CPU份额。报告查询使用的确切份额会相应调整，但由于其优先级设置相同，因此保持相同：
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+CPU Share变化
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gp_query_priority1.png
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+当执行查询进入运行时，因为图优先级最高，将据此调整CPU使用率。 与分析员和报告查询相比，它可能是一个简单的查询，但直到完成，它将占据CPU的最大份额。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+CPU 资源调整
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gp_query_priority2.png
+	width 45col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+启用工作负载管理的步骤 
+\end_layout
+
+\begin_layout Standard
+在数据库中启用和使用工作负载管理涉及以下步骤。
+\end_layout
+
+\begin_layout Subsection
+配置工作负载管理 
+\end_layout
+
+\begin_layout Standard
+默认情况下，数据库对所有启用资源调度。 默认资源队列pg_default的活动语句限制为20，无内存限制和中等优先级设置。 如需为各种类型的工作负载创建资源队列
+，
+\end_layout
+
+\begin_layout Itemize
+以下参数用于资源队列的一般配置： 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+max_resource_queues - 设置资源队列的最大数量。 
+\end_layout
+
+\begin_layout Itemize
+max_resource_portals_per_transaction - 设置每个事务允许的同时打开游标的最大数量。 请注意，打开的游标将在资源队列中视为活
+动的查询。 
+\end_layout
+
+\begin_layout Itemize
+resource_select_only - 如果设置为on，则会评估SELECT，SELECT INTO，CREATE TABLE ASSELECT和DECL
+ARE CURSOR命令。 如果设置为off INSERT，UPDATE和DELETE命令也将被评估。 
+\end_layout
+
+\begin_layout Itemize
+resource_cleanup_gangs_on_wait - 空闲的进程被会清理回收。 
+\end_layout
+
+\begin_layout Itemize
+stats_queue_level - 启用资源队列使用情况的统计信息收集，然后可以通过查询pg_stat_resqueue系统视图进行查看。
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+以下参数与内存利用率有关： 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+gp_resqueue_memory_policy - 启用数据库内存管理功能。 分发算法eager_free利用了并非所有算子同时执行的这一事实。查询计划分为
+多个阶段，数据库将在该阶段执行结束时急速释放分配给前一个阶段的内存，然后将新增的内存分配给新阶段。 
+\end_layout
+
+\begin_layout Itemize
+statement_mem和max_statement_mem - 用于在运行时向特定查询分配内存（覆盖资源队列分配的默认分配）。 max_statement_
+mem由数据库超级用户设置，以防止常规数据库用户过度分配。 
+\end_layout
+
+\begin_layout Itemize
+gp_vmem_protect_limit - 设置所有查询进程可以消耗的上限，不应超过Segment主机的物理内存量。当查询执行期间段主机达到此限制时，超出限
+制的查询将被取消。 
+\end_layout
+
+\begin_layout Itemize
+gp_vmem_idle_resource_timeout和gp_vmem_protect_segworker_cache_limit - 用于释放由空闲数据库
+进程持有的Segment主机上的内存。管理员可能希望在具有大量并发性的系统上调整这些设置。 
+\end_layout
+
+\begin_layout Itemize
+shared_buffers - 设置用于共享内存缓冲区的内存量。此设置必须至少为128KB，并且至少为16千字节以上max_connections。该值不能超
+过操作系统共享内存最大分配请求大小 （shmmax）。
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+以下参数与查询优先级相关。请注意，以下参数都是本地参数，这意味着必须在master和所有Segment的postgresql.conf文件中设置它们：
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+gp_resqueue_priority - 默认情况下启用查询优先级功能。 
+\end_layout
+
+\begin_layout Itemize
+gp_resqueue_priority_sweeper_interval - 设置所有活动语句重新计算CPU使用率的时间间隔。此参数的默认值对于典型的数据库操
+作应该是足够的。 
+\end_layout
+
+\begin_layout Itemize
+gp_resqueue_priority_cpucores_per_segment - 指定每个Segment实例分配的CPU内核数。Master和Segmen
+t的默认值都为4。如果Master有自己的主机，可考虑在Master上调高。 
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+如果您希望查看或更改任何工作负载管理参数值，可以使用gpconfig实用程序。 例如，要查看特定参数的设置：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpconfig --show gp_vmem_protect_limit
+\end_layout
+
+\end_inset
+
+例如，要在所有段实例上设置一个值，并在主节点上设置不同的值：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpconfig -c gp_resqueue_priority_cpucores_per_segment -v 2 -m 8 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+重新启动数据库以使配置更改生效：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstop -r 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+创建资源队列 
+\end_layout
+
+\begin_layout Standard
+创建资源队列包括给它一个名称，设置活动的查询限制，以及可选的资源队列上的查询优先级。 使用CREATE RESOURCE QUEUE命令创建新的资源队列。
+\end_layout
+
+\begin_layout Subsubsection
+创建具有活动查询限制的队列 
+\end_layout
+
+\begin_layout Standard
+设置ACTIVE_STATEMENTS限制分配给该队列的角色可以执行的查询的数量。 例如，要创建一个名为adhoc的资源队列，其查询限制为三：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# CREATE RESOURCE QUEUE adhoc WITH (ACTIVE_STATEMENTS=3); 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+创建具有内存限制的队列 
+\end_layout
+
+\begin_layout Standard
+MEMORY_LIMIT控制通过队列提交的所有查询的内存量。总内存不应超过每Segment可用的物理内存。比如MEMORY_LIMIT设置为基于每个Segmen
+t的90％的可用内存。例如，如果主机具有48 GB的物理内存和6个Segment，则每个Segment可用的内存为8 GB。您可以将单个队列的推荐MEMORY_
+LIMIT计算为0.90 * 8 = 7.2 GB。如果在系统上创建了多个队列，则它们的总内存限制也必须加起来不超过7.2 GB。当与ACTIVE_STATEMENT
+S结合使用时，每个查询分配的默认内存量为：MEMORY_LIMIT / ACTIVE_STATEMENTS。
+\end_layout
+
+\begin_layout Standard
+例如，要创建一个活动查询限制为10并且总内存限制为2000MB的资源队列（每个查询将在执行时分配200MB的Segment主机内存）：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# CREATE RESOURCE QUEUE myqueue WITH (ACTIVE_STATEMENTS=20,  MEMORY_LIMIT='2000
+MB');
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+默认的内存分配可以使用statement_mem服务器配置参数在每个查询的基础上被覆盖，前提是不超过MEMORY_LIMIT或max_statement_mem
+。 例如，要为特定查询分配更多内存：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> SET statement_mem='2GB'; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=> SELECT * FROM my_big_table WHERE column='value' ORDER BY id; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=> RESET statement_mem;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+设置优先级 
+\end_layout
+
+\begin_layout Standard
+为了控制资源队列对可用CPU资源的消耗，管理员可以分配适当的优先级。 当高并发性引起CPU资源争用时，与高优先级资源队列相关联的查询和语句将比较低优先级的查询和
+语句要求更大的可用CPU份额。使用命令CREATE RESOURCE QUEUE和ALTER RESOURCE QUEUE命令的WITH参数创建或更改优先级设置
+。 例如，
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER RESOURCE QUEUE adhoc WITH (PRIORITY=LOW); 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER RESOURCE QUEUE reporting WITH (PRIORITY=HIGH);
+\end_layout
+
+\begin_layout Plain Layout
+
+=# CREATE RESOURCE QUEUE executive WITH (ACTIVE_STATEMENTS=3, PRIORITY=MAX);
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+将角色（用户）分配给资源队列 
+\end_layout
+
+\begin_layout Standard
+创建资源队列后，必须将角色（用户）分配给其相应的资源队列。 如果角色没有明确分配给资源队列，则它们将转到默认资源队列pg_default。 默认资源队列的活动语
+句限制为20，无成本限制，中等优先级设置。
+\end_layout
+
+\begin_layout Standard
+使用ALTER ROLE或CREATE ROLE命令将角色分配给资源队列。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE name RESOURCE QUEUE queue_name; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# CREATE ROLE name WITH LOGIN RESOURCE QUEUE queue_name;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+角色只能在任何给定时间分配给一个资源队列，因此您可以使用ALTER ROLE命令来初始分配或更改角色的资源队列。必须在逐个用户的基础上分配资源队列。
+ 如果您有角色层次结构（例如，组级角色），将资源队列分配给组不会传播到该组中的用户。超级用户总是免除资源队列限制。 超级用户查询将始终运行，而不管其分配的队列上
+设置的限制。
+\end_layout
+
+\begin_layout Subsection
+从资源队列中删除角色 
+\end_layout
+
+\begin_layout Standard
+必须将所有用户分配到资源队列。 如果未明确分配给特定队列，则用户将进入默认资源队列pg_default。 如果您希望从资源队列中删除角色并将其置于默认队列中，请
+将角色的队列分配更改为none。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE role_name RESOURCE QUEUE none; 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+修改资源队列 
+\end_layout
+
+\begin_layout Standard
+创建资源队列后，您可以使用ALTER RESOURCE QUEUE命令更改或重置队列限制。 您可以使用DROP RESOURCE QUEUE命令删除资源队列。
+\end_layout
+
+\begin_layout Subsection
+更改资源队列 
+\end_layout
+
+\begin_layout Standard
+ALTER RESOURCE QUEUE命令更改资源队列的限制。 要更改资源队列的限制，请指定队列所需的新值。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER RESOURCE QUEUE adhoc WITH (ACTIVE_STATEMENTS=5); 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER RESOURCE QUEUE exec WITH (PRIORITY=MAX);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+要将活动语句或内存限制重置为无限制，请输入值-1。 
+\end_layout
+
+\begin_layout Standard
+您可以使用ALTER RESOURCE QUEUE命令来更改与资源队列相关联的查询的优先级。 例如，将队列设置为最小优先级：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ALTER RESOURCE QUEUE webuser WITH (PRIORITY=MIN); 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+删除资源队列 
+\end_layout
+
+\begin_layout Standard
+DROP RESOURCE QUEUE命令删除资源队列。 要删除资源队列，队列不能分配任何角色，也不能在队列中等待任何语句。 删除资源队列：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# DROP RESOURCE QUEUE name; 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+检查资源队列状态
+\end_layout
+
+\begin_layout Subsection
+查看排队语句和资源队列状态 
+\end_layout
+
+\begin_layout Standard
+gp_toolkit.gp_resqueue_status视图允许管理员查看工作负载管理资源队列的状态和活动。 它显示正在等待运行的查询和从特定资源队列当前处于活
+动状态的系统中有多少个查询。 要查看系统中创建的资源队列，其限制属性及其当前状态：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT * FROM gp_toolkit.gp_resqueue_status;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+查看资源队列统计信息 
+\end_layout
+
+\begin_layout Standard
+如果要随时间追踪资源队列的统计信息和性能，可以启用统计信息收集资源队列。 这可以通过在master postgresql.conf文件中设置以下服务器配置参数：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+stats_queue_level = on
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+启用此功能后，可以使用pg_stat_resqueues系统视图查看资源队列使用情况下收集的统计信息。 请注意，启用此功能确实会导致轻微的性能开销，因为必须跟踪
+通过资源队列提交的每个查询。 启用统计信息收集资源队列以进行初始诊断和管理计划可能是有用的，然后禁用该功能以供继续使用。
+\end_layout
+
+\begin_layout Subsection
+查看分配给资源队列的角色 
+\end_layout
+
+\begin_layout Standard
+要查看分配给资源队列的角色，请执行以下pg_roles和gp_toolkit.gp_resqueue_status系统目录表的查询：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT rolname, rsqname FROM pg_roles,            
+\end_layout
+
+\begin_layout Plain Layout
+
+       gp_toolkit.gp_resqueue_status     
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE pg_roles.rolresqueue=gp_toolkit.gp_resqueue_status.queueid;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+您可能需要创建此查询的视图，以简化未来的查询。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# CREATE VIEW role2queue AS    
+\end_layout
+
+\begin_layout Plain Layout
+
+   SELECT rolname, rsqname FROM pg_roles, pg_resqueue
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE pg_roles.rolresqueue=gp_toolkit.gp_resqueue_status.queueid;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+查看资源队列的等待查询 
+\end_layout
+
+\begin_layout Standard
+当资源队列运行查询时，它将记录在pg_locks系统目录表中。 这是您可以看到所有资源队列的所有当前活动和等待的查询。 要检查这些语句正在排队（甚至不等待的语句
+），可以使用gp_toolkit.gp_locks_on_resqueue视图。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT * FROM gp_toolkit.gp_locks_on_resqueue WHERE lorwaiting='true';
+ 
+\end_layout
+
+\end_inset
+
+如果此查询不返回任何结果，那意味着当前没有任何语句在资源队列中等待。
+\end_layout
+
+\begin_layout Subsection
+从资源队列清除等待语句 
+\end_layout
+
+\begin_layout Standard
+在某些情况下，您可能希望从资源队列中清除等待语句。例如，您可能想要删除在队列中等待但尚未执行的查询。如果执行时间太长，或者在事务中闲置并占用其他用户需要的资源队
+列，您可能还想停止已启动的查询。为此，您必须首先识别要清除的语句，确定其进程ID（pid），然后使用具有进程标识的pg_cancel_backend结束该进程，
+如下所示。该过程的可选消息可以作为第二个参数传递，以向用户指示进程被取消的原因。
+\end_layout
+
+\begin_layout Standard
+例如，要查看有关当前处于活动状态或在所有资源队列中等待的所有语句的进程信息，请运行以下查询：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT rolname, rsqname, pid, granted,           
+\end_layout
+
+\begin_layout Plain Layout
+
+     current_query, datname     
+\end_layout
+
+\begin_layout Plain Layout
+
+   FROM pg_roles, gp_toolkit.gp_resqueue_status, 
+\end_layout
+
+\begin_layout Plain Layout
+
+        pg_locks, pg_stat_activity     
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE pg_roles.rolresqueue=pg_locks.objid     
+\end_layout
+
+\begin_layout Plain Layout
+
+      AND pg_locks.objid=gp_toolkit.gp_resqueue_status.queueid    
+\end_layout
+
+\begin_layout Plain Layout
+
+      AND pg_stat_activity.procpid=pg_locks.pid    
+\end_layout
+
+\begin_layout Plain Layout
+
+      AND pg_stat_activity.usename=pg_roles.rolname;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+如果此查询不返回结果，那意味着资源队列中当前没有语句。 具有两个语句的资源队列示例如下所示：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+rolname | rsqname |  pid  | granted |     current_query      | datname 
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+-----------------------------------------------------------------------
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+  sammy | webuser | 31861 | t       | <IDLE> in transaction  | namesdb 
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+  daria | webuser | 31905 | f       | SELECT * FROM topten;  | namesdb
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+使用此输出来标识要从资源队列中清除的语句的进程ID（pid）。 要清除该语句，您将在主机主机上打开终端窗口（作为gpadmin数据库超级用户或root用户），并
+取消相应的进程。 例如
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# pg_cancel_backend(31905)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+查看活动声明的优先级
+\end_layout
+
+\begin_layout Standard
+gp_toolkit管理模式有一个名为gp_resq_priority_statement的视图，该视图列出了当前正在执行的所有语句，并提供了优先级，会话ID和
+其他信息。
+\end_layout
+
+\begin_layout Subsection
+重置活动语句的优先级 
+\end_layout
+
+\begin_layout Standard
+超级用户可以使用内置函数gp_adjust_priority（session_id，statement_count，priority）来调整当前正在执行的语句的
+优先级。 使用此功能，超级用户可以提高或降低任何查询的优先级。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT gp_adjust_priority(752, 24905, 'HIGH')；
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+超级用户可以使用gp_toolkit管理模式视图gp_resq_priority_statement获取此函数所需的会话ID和语句计数参数。 从视图中，
+\end_layout
+
+\begin_layout Itemize
+session_id参数的rqpsession列的值 
+\end_layout
+
+\begin_layout Itemize
+statement_count参数的rqpcommand列的值 
+\end_layout
+
+\begin_layout Itemize
+rqppriority列的值是当前的优先级。 您可以指定字符串值MAX，HIGH，MEDIUM或LOW作为优先级。
+\end_layout
+
+\begin_layout Chapter
+调查性能问题 
+\end_layout
+
+\begin_layout Standard
+本节提供了识别和排除数据库系统中性能问题的指导原则。
+\end_layout
+
+\begin_layout Standard
+本主题列出了您可以采取的步骤，以帮助确定性能问题的原因。 如果问题影响特定的工作负载或查询，您可以专注于调整特定的工作负载。 如果性能问题是系统范围内的，那么硬
+件问题，系统故障或资源争用可能是其原因。
+\end_layout
+
+\begin_layout Section
+检查系统状态 
+\end_layout
+
+\begin_layout Standard
+使用gpstate实用程序来识别失败的Segment。 当Segment失败时，因为其他主机必须处理Segment 镜像的工作，数据库系统将导致性能下降。
+\end_layout
+
+\begin_layout Standard
+故障Segment可能会指示硬件故障，例如磁盘驱动器或网卡出现故障。 DeepGreen数据库提供了硬件验证工具gpcheckperf，以帮助识别具有硬件问题的
+Segment主机。
+\end_layout
+
+\begin_layout Section
+检查数据库活动
+\end_layout
+
+\begin_layout Subsection
+检查活动会话（工作负载）
+\end_layout
+
+\begin_layout Standard
+pg_stat_activity系统目录视图显示每个服务器进程; 它显示数据库OID，数据库名称，进程ID，用户OID，用户名，当前查询，当前查询开始执行的时间
+，进程开始的时间，客户端地址和端口号。 要获取有关当前系统工作负载的最多信息，请使用数据库超级用户运行。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT * FROM pg_stat_activity; 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+检查锁定
+\end_layout
+
+\begin_layout Standard
+pg_locks系统目录视图允许您查看有关未完成锁的信息。 如果事务正在对对象持有锁定，则任何其他查询必须等待该锁释放才能继续。
+\end_layout
+
+\begin_layout Standard
+pg_locks可显示的等待的锁，以帮助识别数据库客户端会话之间的争用。 pg_locks提供了数据库系统中所有锁的全局视图，不仅与当前数据库相关。
+ 您可以使用pg_class.oid加入其关系列，以识别锁定的关系（例如表），但这仅适用于当前数据库中的关系。 您可以将pid列加入pg_stat_activit
+y.procpid以查看有关持有或等待持有锁的会话的更多信息。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT locktype, database, c.relname, l.relation,  
+\end_layout
+
+\begin_layout Plain Layout
+
+  l.transactionid, l.transaction, l.pid, l.mode, l.granted,  
+\end_layout
+
+\begin_layout Plain Layout
+
+  a.current_query          
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM pg_locks l, pg_class c, pg_stat_activity a          
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE l.relation=c.oid AND l.pid=a.procpid          
+\end_layout
+
+\begin_layout Plain Layout
+
+ORDER BY c.relname;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+如果使用资源队列进行工作负载管理，则队列中等待的查询也将显示在pg_lock中。 要查看等待从资源队列运行的查询数量，请使用gp_resqueue_status
+系统目录视图。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT * FROM gp_toolkit.gp_resqueue_status; 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+检查查询状态和系统利用率 
+\end_layout
+
+\begin_layout Standard
+您可以使用系统监视实用程序（如ps，top，iostat，vmstat，netstat等）来监视集群中主机上的数据库活动。 这些工具可以帮助识别当前在系统上运行
+的数据库进程（postgres进程）以及关于CPU，内存，磁盘I / O或网络活动，资源密集型任务。 查看这些系统统计信息，以识别通过重载系统并消耗过多资源来降
+低数据库性能的查询。 DeepGreen 的管理工具gpssh允许您同时在多台主机上运行这些系统监视命令。
+\end_layout
+
+\begin_layout Standard
+您可以创建和使用数据库session_level_memory_consumption视图，该视图提供有关在数据库上运行查询的会话的当前内存利用率和空闲时间的信
+息。
+\end_layout
+
+\begin_layout Section
+排查问题查询 
+\end_layout
+
+\begin_layout Standard
+如果查询执行不良，请查看其查询计划以帮助识别问题。 EXPLAIN命令显示给定查询的查询计划。 
+\end_layout
+
+\begin_layout Standard
+在查询执行期间发生内存不足事件时，数据库内存计算会报告在事件发生时运行的每个查询的详细内存消耗。 信息将写入Segment日志。
+\end_layout
+
+\begin_layout Subsection
+调查错误消息
+\end_layout
+
+\begin_layout Standard
+数据库日志消息将写入master或segment数据目录中pg_log目录中。 因为Master日志文件包含最多的信息，所以你应该首先检查它。
+ 日志文件每天滚动并使用命名约定：gpdb-YYYY-MM-DD_hhmmss.csv。 要在Master主机上查找日志文件：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ cd $MASTER_DATA_DIRECTORY/pg_log
+\end_layout
+
+\end_inset
+
+日志行的格式如下：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+timestamp | user | database | statement_id | con#cmd#  |:-LOG_LEVEL: log_message
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+您可能需要集中搜索“WARNING”，“ERROR”，“FATAL”或“PANIC”日志级消息。 您可以使用gplogfilter来搜索日志文件。
+ 例如，在Master主机上运行以下命令时，它会检查标准日志记录位置中的问题日志消息：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gplogfilter -t 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+要在Segment日志文件中搜索相关日志条目，可以使用gpssh在段主机上运行gplogfilter。 您可以通过statement_id或con＃（会话标识符
+）来识别相应的日志条目。 例如，要在包含字符串con6的段日志文件中搜索日志消息，并将输出保存到文件中：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpssh -f seg_hosts_file -e 
+\end_layout
+
+\begin_layout Plain Layout
+
+'source  /usr/local/greenplum-db/greenplum_path.sh; 
+\end_layout
+
+\begin_layout Plain Layout
+
+ gplogfilter -f  con6 /gpdata/*/pg_log/gpdb*.csv' > seglog.out
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \end_body
 \end_document
