@@ -1,0 +1,739 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass ctex-book
+\begin_preamble
+% 如果没有这一句命令，XeTeX会出错，原因参见
+% http://bbs.ctex.org/viewthread.php?tid=60547
+\DeclareRobustCommand\nobreakspace{\leavevmode\nobreak\ }
+\end_preamble
+\options UTF8
+\use_default_options true
+\maintain_unincluded_children false
+\language chinese-simplified
+\language_package none
+\inputencoding utf8-plain
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format pdf4
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 0
+\use_package mhchem 1
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\listings_params "basicstyle={\ttfamily}"
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part
+DEEPGREEN 性能管理
+\end_layout
+
+\begin_layout Chapter
+定义数据库性能
+\end_layout
+
+\begin_layout Standard
+管理系统性能包括衡量性能，确定性能问题的原因，以及应用可用的工具和技术来解决问题。DeepGreen根据数据库管理系统（DBMS）向请求者提供信息的速率来衡量数
+据库性能。
+\end_layout
+
+\begin_layout Section
+了解影响性能的因素
+\end_layout
+
+\begin_layout Standard
+了解影响数据库性能的几个关键性能因有助于提高系统性能并避免出现问题。
+\end_layout
+
+\begin_layout Subsection
+系统资源
+\end_layout
+
+\begin_layout Standard
+数据库性能严重依赖于磁盘I / O和内存使用。 要准确设置性能预期，您需要了解部署了DBMS的硬件的基准性能。 硬件组件（如CPU，硬盘，磁盘控制器，RAM和网
+络接口）的性能将显着影响数据库的运行速度。
+\end_layout
+
+\begin_layout Subsection
+工作负载
+\end_layout
+
+\begin_layout Standard
+工作负载等于DBMS的总需求，并随时间而变化。 总工作量是在任何给定时间的用户查询，应用程序，批处理作业，事务和系统命令的组合。 例如，当大多数用户离开办公室时
+负载会降低，而月末报告运行时可能会增加。 工作负载强烈影响数据库性能。 了解您的工作负载和峰值需求时间可以帮助您计划最有效地利用系统资源，并能够处理尽可能大的工
+作负载。
+\end_layout
+
+\begin_layout Subsection
+吞吐量 
+\end_layout
+
+\begin_layout Standard
+系统的吞吐量是指其处理数据的整体能力。 DBMS吞吐量以每秒查询，每秒事务或平均响应时间衡量。 DBMS吞吐量与底层系统（磁盘I / O，CPU速度，内存带宽等
+）的处理能力密切相关，因此在设置DBMS吞吐量目标时，了解硬件的吞吐能力很重要。
+\end_layout
+
+\begin_layout Subsection
+冲突
+\end_layout
+
+\begin_layout Standard
+冲突是指其中工作负载的两个或多个组件尝试以竞争的方式使用系统 - 例如，多个查询尝试同时更新同一个数据或多个大型工作竞争系统资源。 随着争用的增加，吞吐量会下降
+。
+\end_layout
+
+\begin_layout Subsection
+优化
+\end_layout
+
+\begin_layout Standard
+DBMS优化可能会影响整个系统的性能。 SQL配置，数据库配置参数，表设计，数据分发等功能使数据库查询优化器能够创建最有效的访问计划。
+\end_layout
+
+\begin_layout Section
+确定可接受的性能
+\end_layout
+
+\begin_layout Standard
+开始性能调优时，应该了解系统的预期性能水平，并定义可衡量的性能要求，以便您可以准确评估系统的性能。 设置性能目标时请考虑以下几点。
+\end_layout
+
+\begin_layout Subsection
+基准硬件性能
+\end_layout
+
+\begin_layout Standard
+大多数数据库性能问题不是由数据库引起的，而是由数据库运行的底层系统引起的。 I / O瓶颈，内存问题和网络问题可能会显着降低数据库性能。 了解硬件和操作系统（O
+S）的基本功能将有助于您在开发数据库级别或查询级别调优计划之前，识别并解决与硬件有关的问题。
+\end_layout
+
+\begin_layout Subsection
+性能基准
+\end_layout
+
+\begin_layout Standard
+为了保持良好的性能或修复性能问题，您应该知道DBMS在确定的工作负载上的能力。 基准是产生已知结果集的预定义工作负载。 定期运行相同的基准测试，以帮助识别与系统
+相关的性能下降，并识别需要优化的查询或应用程序。
+\end_layout
+
+\begin_layout Standard
+许多第三方组织，如TPC，为数据库行业提供基准工具。 TPC提供的TPC-H是一个检查大量数据的决策支持系统，执行高度复杂的查询，并提供关键业务问题的答案。
+ 有关TPC-H的更多信息，请访问：
+\end_layout
+
+\begin_layout Standard
+http://www.tpc.org/tpch
+\end_layout
+
+\begin_layout Chapter
+性能问题的常见原因
+\end_layout
+
+\begin_layout Section
+识别硬件和Segment故障
+\end_layout
+
+\begin_layout Standard
+DeepGreen 数据库的性能取决于其运行的硬件和IT基础架构。 数据库集群由几个服务器（主机）组成; 作为诊断性能问题的第一步，确保所有的Segment都在
+线。 数据库的性能将由集群中最慢的主机决定。 CPU利用率，内存管理，I / O处理或网络负载的问题会影响性能。 常见的硬件相关问题是：
+\end_layout
+
+\begin_layout Itemize
+磁盘故障 - 如果使用RAID，单个磁盘故障不会对数据库性能造成极大的影响。 但磁盘重新同步会占用主机上出现故障磁盘的资源。 gpcheckperf实用程序可以
+帮助识别具有磁盘I / O问题的Segment主机。 
+\end_layout
+
+\begin_layout Itemize
+主机故障 - 当主机失败时，该主机上的Segment不能工作。 这意味着集群中的其他主机必须执行高于其常规工作负载。如果镜像未启用，则服务中断。gpstate实
+用程序可帮助识别失败的Segment。 
+\end_layout
+
+\begin_layout Itemize
+网络故障 - 网络接口卡，交换机或DNS服务器故障可能会导致Segment失效。如果您的集群无法解析主机名或IP地址，那么它们将在数据库中显示为互连错误。
+ gpcheckperf 有助于识别具有网络问题的Segment 主机。 
+\end_layout
+
+\begin_layout Itemize
+磁盘容量 - Segment 主机上的磁盘容量不应超过70％。 数据库需要一些可用空间进行运行时处理。要回收删除的行占用的磁盘空间，请在加载或更新后运行VACU
+UM。 gp_toolkit管理模式有许多视图用于检查分布式数据库对象的大小。
+\end_layout
+
+\begin_layout Section
+管理负载
+\end_layout
+
+\begin_layout Standard
+数据库系统具有有限的CPU容量，内存和磁盘I / O资源。当多个工作负载竞争访问这些资源时，数据库性能将受到影响。负载管理可以最大限度地提高系统吞吐量，同时满足
+不同业务需求。 通过基于角色的资源队列，数据库可以管理负载，限制一些查询，节省系统资源。
+\end_layout
+
+\begin_layout Standard
+资源队列限制用户或角色可以在特定队列中执行的查询的大小和/或总数。通过将数据库角色分配给相应的资源队列，管理员可以控制并发用户查询并防止系统过载。
+\end_layout
+
+\begin_layout Standard
+数据库管理员应在营业时间后运行维护工作负载，如数据加载和VACUUM ANALYZE操作。不要与数据库用户竞争系统资源;在低使用时间执行管理任务。
+\end_layout
+
+\begin_layout Section
+避免冲突
+\end_layout
+
+\begin_layout Standard
+当多个用户或工作负载尝试以竞争的方式使用系统时，产生冲突。 例如，当两个事务尝试同时更新表，寻求表级别或行级锁的事务将无限期地等待释放冲突的锁。
+ 应用程序不应长时间持有事务。
+\end_layout
+
+\begin_layout Section
+维护数据库统计
+\end_layout
+
+\begin_layout Standard
+DeepGreen 数据库使用依赖于数据库统计信息的基于成本的查询优化器。 准确的统计信息允许查询优化器更好地估计查询获取的行数，以选择最有效的查询计划。
+ 没有数据库统计信息，查询优化器无法估计将返回多少条记录。 优化器不会假定它具有足够的内存来执行诸如聚合的某些操作，因此它采取最保守的操作，并通过从磁盘读写来执
+行这些操作。 这比使用内存慢得多。 可使用ANALYZE收集关于查询优化器需要的数据库的统计信息。
+\end_layout
+
+\begin_layout Subsection
+识别查询计划中的统计问题
+\end_layout
+
+\begin_layout Standard
+在使用EXPLAIN或EXPLAIN ANALYZE解释查询的计划之前，请先熟悉数据以帮助识别可能的统计问题。 如有以下问题，可能说明统计不准确。
+\end_layout
+
+\begin_layout Itemize
+优化器的估计是否接近现实？ 运行EXPLAIN ANALYZE，查看优化器估计的行数是否接近查询操作返回的行数。 
+\end_layout
+
+\begin_layout Itemize
+条件在计划尽早应用了吗？ 应该在计划的早期应用最有选择性的过滤器，所以更少的行向上移动计划树。 
+\end_layout
+
+\begin_layout Itemize
+优化器是否选择最佳连接顺序？ 当您有一个连接多个表的查询时，请确保优化程序选择最具选择性的连接顺序。 消除最大数量的行的联接应该在计划的早期完成，所以更少的行向
+上移动计划树。
+\end_layout
+
+\begin_layout Subsection
+调整统计数据收集
+\end_layout
+
+\begin_layout Standard
+以下配置参数控制采集的统计数据。
+\end_layout
+
+\begin_layout Itemize
+default_statistics_target 
+\end_layout
+
+\begin_layout Itemize
+gp_analyze_relative_error 
+\end_layout
+
+\begin_layout Standard
+这些参数控制系统的统计抽样。 最好只对查询条件中最常用的列多采样进行统计。 您可以使用以下命令调整特定列的统计信息：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ALTER TABLE...SET STATISTICS
+\end_layout
+
+\end_inset
+
+例如
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ALTER TABLE sales ALTER COLUMN region SET STATISTICS 50;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+这相当于增加特定列的default_statistics_target。 随后的ANALYZE操作将收集该列的更多统计数据，并产生更好的查询计划。
+\end_layout
+
+\begin_layout Section
+优化数据分布
+\end_layout
+
+\begin_layout Standard
+当创建表时，必须声明一个分发列，以便在系统中的所有Segment上均匀分配数据。 由于一个查询中Segment并行工作，数据库将始终与最慢的Segment一样快
+。 如果数据不平衡，具有更多数据的Segment将更慢，从而减慢整个系统的速度。
+\end_layout
+
+\begin_layout Section
+优化数据库设计
+\end_layout
+
+\begin_layout Standard
+数据库设计可以改善许多性能问题。 检查您的数据库设计，并考虑以下内容：
+\end_layout
+
+\begin_layout Itemize
+模式是否反映了访问数据的方式？ 
+\end_layout
+
+\begin_layout Itemize
+可以将较大的表分解成分区？ 
+\end_layout
+
+\begin_layout Itemize
+您是否使用最小的数据类型来存储列值？ 
+\end_layout
+
+\begin_layout Itemize
+列是否用于连接相同数据类型的表？ 
+\end_layout
+
+\begin_layout Itemize
+你的索引是否被使用？
+\end_layout
+
+\begin_layout Section
+数据库最大限制
+\end_layout
+
+\begin_layout Standard
+为了帮助优化数据库设计，请查看下表列出的DeepGreen支持的最大限制：
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+数据库的最大限制
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="11" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+限制
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+数据库大小
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+无限制
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+表大小
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+无限制
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+一行大小
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.6TB （1600 列 * 1GB） 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+字段大小
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1GB
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+表的最大行数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+48
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+表的列数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1600
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+表的索引数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+无限制
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+索引的列数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+32
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+表的约束数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+无限制
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+表名字长度
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+63字节
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+使用资源队列管理工作负载
+\end_layout
+
+\begin_layout Standard
+DeepGreen数据库工作负载管理可根据业务需求对查询进行优先级排序和分配资源，并防止在资源不足时启动查询。本节介绍了工作负载管理，并介绍了如何使用资源队列来
+管理资源。使用资源队列，可以将可用的内存和CPU资源分配给在数据库系统上执行的不同类型的查询。您可以限制并发查询的数量，用于执行查询的内存量，以及用于处理查询的
+CPU的相对数量。
+\end_layout
+
+\begin_layout Standard
+资源管理的主要问题是可以并发执行的查询数量以及分配给每个查询的内存量。不限制并发和内存使用，不可能保证可接受的性能。内存是最有可能限制系统处理能力的资源。因此，
+我们从数据库内存使用的概述开始。
+\end_layout
+
+\begin_layout Section
+数据库中内存使用概述
+\end_layout
+
+\begin_layout Standard
+内存是数据库系统的关键资源，当高效使用时，可以确保高性能和吞吐量。 本主题介绍如何在Segment之间分配Segment主机内存以及管理员可用于配置内存的选项。
+\end_layout
+
+\begin_layout Standard
+数据库Segment主机运行多个PostgreSQL实例，共享主机的内存。 这些Segment具有相同的配置，并且在并行处理查询时同时消耗类似的内存，CPU和磁
+盘IO。
+\end_layout
+
+\begin_layout Standard
+为获得最佳查询吞吐量，应仔细管理内存配置。 数据库中的每个级别都有内存配置选项，从操作系统参数到使用资源队列管理工作负载，以设置分配给单个查询的内存量。
+\end_layout
+
+\begin_layout Subsection
+Segment主机内存
+\end_layout
+
+\begin_layout Standard
+在数据库主机上，可用的主机内存由在计算机上执行的所有进程（包括操作系统， Segment， 和其他应用程序进程）之间共享。 管理员必须确定数据库和非数据库进程如
+何共享主机的内存，并配置系统以有效地使用内存。 定期监控内存使用情况同样重要，以检测数据库或其他进程占用主机内存的方式的任何变化。
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Segment主机内存
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/memory.png
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+从图示的底部开始，标有A的行表示总主机内存。线A上方的线显示总主机内存包括物理RAM和交换空间。
+\end_layout
+
+\begin_layout Standard
+标记为B的行显示可用的总内存必须由数据库和主机上的所有其他进程共享。非数据库进程包括操作系统和任何其他应用程序，例如系统监视代理程序。某些应用程序可能会使用大量
+的内存，因此，您可能需要调整每个数据库主机上的Segment数或每个Segment的内存量。
+\end_layout
+
+\begin_layout Standard
+每个Segment（C）平均分配所有配给数据库的内存。
+\end_layout
+
+\begin_layout Standard
+在Segment内，资源队列控制如何分配内存来执行SQL语句。资源队列把业务需求转换为数据库系统中的执行策略，并防止可能降低性能的查询。
+\end_layout
+
+\begin_layout Standard
+非管理用户向数据库系统提交的每条语句都与资源队列相关联。队列确定该语句是否被允许执行，仅当资源可用时，允许它执行。当资源不足时，该语句可能会被拒绝，或排队等待执
+行。
+\end_layout
+
+\begin_layout Standard
+您可以为不同类型的查询创建资源队列，并为每个队列预留Segment内存。或者，不使用资源队列，而是设置服务器配置参数以指定为每个查询分配多少内存。
+\end_layout
+
+\begin_layout Standard
+查询优化器生成查询执行计划，由一系列称为算子（在图中标记为D）的任务组成。算子执行表扫描或联接等任务，通常通过处理一组或多组输入行来产生中间查询结果。每个算子收
+到资源队列分配给查询的内存的一部分。如果一个算子无法在分配给它的内存中执行其所有工作，则会将数据缓存在磁盘上的溢出文件中。
+\end_layout
+
+\end_body
+\end_document
