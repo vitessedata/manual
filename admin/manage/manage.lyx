@@ -1281,22 +1281,35 @@ status open
 
 \begin_layout Plain Layout
 
-filespaceOrder=[filespace1_fsname[:filespace2_fsname:...]  mirror[content]=content:
-address:port 
+filespaceOrder=[filespace1_fsname          
 \backslash
 
 \end_layout
 
 \begin_layout Plain Layout
 
-:mir_replication_port                
+               [:filespace2_fsname:...]    
+\backslash
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+mirror[content]=content:address:port       
 \backslash
 
 \end_layout
 
 \begin_layout Plain Layout
 
-:pri_replication_port                
+:mir_replication_port                      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+:pri_replication_port                      
 \backslash
 
 \end_layout
@@ -1406,7 +1419,7 @@ $ psql dbname -c 'SELECT procpid, state
 
 \begin_layout Plain Layout
 
-FROM pg_stat_replication;' 
+  FROM pg_stat_replication;' 
 \end_layout
 
 \end_inset
@@ -1441,10 +1454,21 @@ ERROR: All segment databases are unavailable
 \end_layout
 
 \begin_layout Standard
-FTSprobe 通过轮询监控各个Segment状态。 管理员可以通过 gp_segment_configuration 来查询Segment状态。
- 可以看到Segment是 up／down， "change tracking", "resync", 或 "in-sync"。 失败的Segment可以用gp
-recoverseg来修复。 缺省gprecoverseg采用增量修复。 gprecoverseg 把segment状态设置为resync然后复制变化的数据。
- 如果增量修复不成功，可以使用 -F 选项强制全Segment修复。
+FTSprobe 通过轮询监控各个Segment状态。 管理员可以通过 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gp_segment_configuration
+\end_layout
+
+\end_inset
+
+ 来查询Segment状态。 可以看到Segment是 up／down， "change tracking", "resync", 或 "in-sync"。
+ 失败的Segment可以用gprecoverseg来修复。 缺省gprecoverseg采用增量修复。 gprecoverseg 把segment状态设置为r
+esync然后复制变化的数据。 如果增量修复不成功，可以使用 -F 选项强制全Segment修复。
 \end_layout
 
 \begin_layout Standard
@@ -1502,7 +1526,7 @@ $ gpstate -e
 \end_layout
 
 \begin_layout Enumerate
-要获得失败Instance的详细信息，可查看系统日志表 gp_segment_configuration。例如，
+要获得失败Instance的详细信息，可查看系统日志表。例如，
 \begin_inset listings
 inline false
 status open
@@ -1516,7 +1540,7 @@ $ psql -c "SELECT * FROM
 
 \begin_layout Plain Layout
 
-gp_segment_configuration WHERE status='d';" 
+  gp_segment_configuration WHERE status='d';" 
 \end_layout
 
 \end_inset
@@ -1578,28 +1602,28 @@ status open
 
 \begin_layout Plain Layout
 
-$ gpssh -f seg_hosts_file -e                        
+$ gpssh -f seg_hosts_file -e 'source              
 \backslash
 
 \end_layout
 
 \begin_layout Plain Layout
 
-'source  /usr/local/greenplum-db/greenplum_path.sh; 
+  /usr/local/greenplum-db/greenplum_path.sh;      
 \backslash
 
 \end_layout
 
 \begin_layout Plain Layout
 
- gplogfilter -t  /data1/primary/*/pg_log/gpdb*.log' 
+  gplogfilter -t                                  
 \backslash
 
 \end_layout
 
 \begin_layout Plain Layout
 
-> seglog.out
+  /data1/primary/*/pg_log/gpdb*.log' > seglog.out
 \end_layout
 
 \end_inset
@@ -1908,7 +1932,12 @@ failed_host_address: port:fselocation d
 
 \begin_layout Plain Layout
 
-[recovery_host_address:port:replication_port:fselocation [:fselocation:...]]
+[recovery_host_address:port:replication_port:
+\end_layout
+
+\begin_layout Plain Layout
+
+fselocation [:fselocation:...]]
 \end_layout
 
 \end_inset
@@ -1920,8 +1949,12 @@ status open
 
 \begin_layout Plain Layout
 
-filespaceOrder=sdw5-2:50002:/gpdata/gpseg2 sdw9-2:50002:53002:/gpdata/gpseg2
- 
+filespaceOrder=sdw5-2:50002:/gpdata/gpseg2 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw9-2:50002:53002:/gpdata/gpseg2 
 \end_layout
 
 \end_inset
@@ -2874,8 +2907,12 @@ status open
 
 \begin_layout Plain Layout
 
-$ gpcrondump -x testdb -K 20150519160000 --list-backup-files -u /backups
- 
+$ gpcrondump -x testdb -K 20150519160000 
+\end_layout
+
+\begin_layout Plain Layout
+
+  --list-backup-files -u /backups 
 \end_layout
 
 \end_inset
@@ -2914,7 +2951,12 @@ drwxrwxr-x 3 gpadmin gpadmin 4096 May 19 21:49 db_dumps
 
 \begin_layout Plain Layout
 
-total 4 drwxrwxr-x 2 gpadmin gpadmin 4096 May 19 21:49 20150519
+total 4 drwxrwxr-x 2 gpadmin gpadmin 4096 
+\end_layout
+
+\begin_layout Plain Layout
+
+    May 19 21:49 20150519
 \end_layout
 
 \begin_layout Plain Layout
@@ -2928,14 +2970,22 @@ total 4 drwxrwxr-x 2 gpadmin gpadmin 4096 May 19 21:49 20150519
 
 \begin_layout Plain Layout
 
--rw-rw-r-- 1 gpadmin gpadmin 256 May 19 21:49 gp_dump_20150519160000_pipes
- 
+-rw-rw-r-- 1 gpadmin gpadmin 256 
 \end_layout
 
 \begin_layout Plain Layout
 
--rw-rw-r-- 1 gpadmin gpadmin 391 May 19 21:49 gp_dump_20150519160000_regular_fil
-es
+    May 19 21:49 gp_dump_20150519160000_pipes 
+\end_layout
+
+\begin_layout Plain Layout
+
+-rw-rw-r-- 1 gpadmin gpadmin 391 
+\end_layout
+
+\begin_layout Plain Layout
+
+    May 19 21:49 gp_dump_20150519160000_regular_files
 \end_layout
 
 \end_inset
@@ -2950,27 +3000,62 @@ status open
 
 \begin_layout Plain Layout
 
-$ cat /backups/db_dumps/20150519/gp_dump_20150519160000_pipes  
+$ cat /backups/db_dumps/20150519/        
+\backslash
+
 \end_layout
 
 \begin_layout Plain Layout
 
-sdw1:/backups/db_dumps/20150519/gp_dump_0_2_20150519160000.gz 
+        gp_dump_20150519160000_pipes  
 \end_layout
 
 \begin_layout Plain Layout
 
-sdw2:/backups/db_dumps/20150519/gp_dump_1_3_20150519160000.gz 
+sdw1:/backups/db_dumps/20150519/         
+\backslash
+
 \end_layout
 
 \begin_layout Plain Layout
 
-mdw:/backups/db_dumps/20150519/gp_dump_-1_1_20150519160000.gz 
+        gp_dump_0_2_20150519160000.gz 
 \end_layout
 
 \begin_layout Plain Layout
 
-mdw:/backups/db_dumps/20150519/gp_dump_-1_1_20150519160000_post_data.gz
+sdw2:/backups/db_dumps/20150519/         
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_1_3_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+mdw:/backups/db_dumps/20150519/          
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_-1_1_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+mdw:/backups/db_dumps/20150519           
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_-1_1_20150519160000_post_data.gz
 \end_layout
 
 \end_inset
@@ -2996,13 +3081,26 @@ gpssh -h sdw1
 
 \begin_layout Plain Layout
 
-[sdw1] mkfifo /backups/db_dumps/20150519/gp_dump_0_2_20150519160000.gz 
+[sdw1] mkfifo /backups/db_dumps/20150519/   
+\backslash
+ 
 \end_layout
 
 \begin_layout Plain Layout
 
-[sdw1] cat /backups/db_dumps/20150519/gp_dump_0_2_20150519160000.gz | nc
- -l 21000  
+       gp_dump_0_2_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] cat /backups/db_dumps/20150519/      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+       gp_dump_0_2_20150519160000.gz | nc -l 21000  
 \end_layout
 
 \begin_layout Plain Layout
@@ -3160,7 +3258,12 @@ status open
 
 \begin_layout Plain Layout
 
-$ gpdbrestore -R archive_host:/gpdb/backups/archive/20120714 -e dbname 
+$ gpdbrestore -R archive_host:/gpdb/backups/archive/20120714
+\end_layout
+
+\begin_layout Plain Layout
+
+              -e dbname 
 \end_layout
 
 \end_inset
@@ -3193,10 +3296,14 @@ gpdbrestore要求恢复的系统必须与备份的系统具有相同数目的Seg
 \end_layout
 
 \begin_layout Enumerate
-首先确保具备了全部的备份文件。包括Master的备份文件 (gp_dump_1_1_<timestamp>， gp_dump_1_1_<timestamp>_p
-ost_data)和每 个SEGMENT的备份文件(gp_dump_0_2_<timestamp>， gp_dump_0_3_<timestamp>，gp_du
-mp_0_4_<timestamp>，等等)。所有的备份文件必须含有相同时间戳。缺省状态下，gp_dump在每个SEGMENT的数据目录生成备份文件，因此，Ma
-ster需要收集所有的备份文件。如果Master没有足够的磁盘空间，可以拷贝 一个SEGMENT的备份，装载，删除，再拷贝其他的。 
+首先确保具备了全部的备份文件。包括Master的备份文件 , 
+\begin_inset Newline newline
+\end_inset
+
+(gp_dump_1_1_<timestamp>， gp_dump_1_1_<timestamp>_post_data)和每 个SEGMENT的备份文件(gp_
+dump_0_2_<timestamp>， gp_dump_0_3_<timestamp>，gp_dump_0_4_<timestamp>，等等)。所有的备份文
+件必须含有相同时间戳。缺省状态下，gp_dump在每个SEGMENT的数据目录生成备份文件，因此，Master需要收集所有的备份文件。如果Master没有足够的
+磁盘空间，可以拷贝 一个SEGMENT的备份，装载，删除，再拷贝其他的。 
 \end_layout
 
 \begin_layout Enumerate
@@ -3263,7 +3370,14 @@ status open
 
 \begin_layout Plain Layout
 
-$ psql database_name -f /gpdb/backups/gp_dump_0_5_20160714_post_data 
+$ psql database_name -f /gpdb/backups/   
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+          gp_dump_0_5_20160714_post_data 
 \end_layout
 
 \end_inset
@@ -3279,7 +3393,14 @@ status open
 
 \begin_layout Plain Layout
 
-gunzip -c path_to_master_dump_directory/gp_dump_-1_1_timestamp.gz 
+gunzip -c path_to_master_dump_directory/           
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+    gp_dump_-1_1_timestamp.gz                      
 \backslash
 
 \end_layout
@@ -4683,8 +4804,14 @@ status open
 
 \begin_layout Plain Layout
 
-hostname:address:port:fselocation:dbid:content:preferred_role:replication_port
- 
+hostname:address:port:fselocation:dbid:content:  
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+preferred_role:replication_port 
 \end_layout
 
 \end_inset
@@ -5057,13 +5184,22 @@ status open
 
 \begin_layout Plain Layout
 
-=> UPDATE gpexpand.status_detail SET rank=1 WHERE fq_name = 'public.lineitem';
- 
+=> UPDATE gpexpand.status_detail SET rank=1 
 \end_layout
 
 \begin_layout Plain Layout
 
-=> UPDATE gpexpand.status_detail SET rank=2 WHERE fq_name = 'public.orders';
+   WHERE fq_name = 'public.lineitem'; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=> UPDATE gpexpand.status_detail SET rank=2 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE fq_name = 'public.orders';
 \end_layout
 
 \end_inset
@@ -5102,8 +5238,34 @@ $ gpexpand -d 60:00:00
 \end_layout
 
 \begin_layout Standard
-在重分布表过程中，任何时间都可以查询该扩展Schema。gpexpand.expansion_progress提供了当前进度的摘要，包括预估的已经重分布的比率和估
-计的完成时间。gpexpand.status_detail表可用于查看每张表的重分布状态信息。
+在重分布表过程中，任何时间都可以查询该扩展Schema。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand.expansion_progress
+\end_layout
+
+\end_inset
+
+提供了当前进度的摘要，包括预估的已经重分布的比率和估计的完成时间。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand.status_detail
+\end_layout
+
+\end_inset
+
+表可用于查看每张表的重分布状态信息。
 \end_layout
 
 \begin_layout Subsection
@@ -5729,8 +5891,12 @@ status open
 
 \begin_layout Plain Layout
 
-WARNING: database "database_name" must be vacuumed within number_of_transactions
- transactions
+WARNING: database "database_name" must be vacuumed
+\end_layout
+
+\begin_layout Plain Layout
+
+   within number_of_transactions transactions
 \end_layout
 
 \end_inset
@@ -5746,8 +5912,12 @@ status open
 
 \begin_layout Plain Layout
 
-FATAL: database is not accepting commands to avoid  wraparound data loss
- in database "database_name"
+FATAL: database is not accepting commands to avoid  
+\end_layout
+
+\begin_layout Plain Layout
+
+   wraparound data loss in database "database_name"
 \end_layout
 
 \end_inset
@@ -5811,18 +5981,32 @@ DBNAME="<database-name>"
 
 \begin_layout Plain Layout
 
-SYSTABLES="' pg_catalog.' || relname || ';' from pg_class a, pg_namespace
- b  
+SYSTABLES="' pg_catalog.' || relname || ';' 
 \end_layout
 
 \begin_layout Plain Layout
 
-where a.relnamespace=b.oid and b.nspname='pg_catalog' and a.relkind='r'" 
+from pg_class a, pg_namespace b  
 \end_layout
 
 \begin_layout Plain Layout
 
-psql -tc "SELECT 'VACUUM' || $SYSTABLES" $DBNAME | psql -a $DBNAME 
+where a.relnamespace=b.oid and 
+\end_layout
+
+\begin_layout Plain Layout
+
+    b.nspname='pg_catalog' and a.relkind='r'" 
+\end_layout
+
+\begin_layout Plain Layout
+
+psql -tc "SELECT 'VACUUM' || $SYSTABLES" $DBNAME 
+\end_layout
+
+\begin_layout Plain Layout
+
+| psql -a $DBNAME 
 \end_layout
 
 \begin_layout Plain Layout
@@ -5893,7 +6077,12 @@ status open
 
 \begin_layout Plain Layout
 
-SELECT * FROM gp_segment_configuration WHERE status <> 'u';
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE status <> 'u';
 \end_layout
 
 \end_inset
@@ -5910,7 +6099,12 @@ status open
 
 \begin_layout Plain Layout
 
-SELECT * FROM gp_segment_configuration WHERE mode = 'c';
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE mode = 'c';
 \end_layout
 
 \end_inset
@@ -5927,7 +6121,12 @@ status open
 
 \begin_layout Plain Layout
 
-SELECT * FROM gp_segment_configuration WHERE mode = 'r';
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE mode = 'r';
 \end_layout
 
 \end_inset
@@ -5945,7 +6144,12 @@ status open
 
 \begin_layout Plain Layout
 
-SELECT * FROM gp_segment_configuration WHERE preferred_role <> role;
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE preferred_role <> role;
 \end_layout
 
 \end_inset
@@ -5961,8 +6165,17 @@ status open
 
 \begin_layout Plain Layout
 
-SELECT gp_segment_id, count(*) FROM gp_dist_random('pg_class') GROUP BY
- 1;
+SELECT gp_segment_id, count(*) 
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM gp_dist_random('pg_class') 
+\end_layout
+
+\begin_layout Plain Layout
+
+GROUP BY 1;
 \end_layout
 
 \end_inset
@@ -5978,7 +6191,12 @@ status open
 
 \begin_layout Plain Layout
 
-psql dbname -c 'SELECT procpid, state FROM pg_stat_replication;' 
+psql dbname -c 'SELECT procpid, state 
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM pg_stat_replication;' 
 \end_layout
 
 \end_inset
@@ -6099,12 +6317,12 @@ status open
 
 \begin_layout Plain Layout
 
-During a downtime, with no users on the system, run the
+During a downtime, with no users on the system, 
 \end_layout
 
 \begin_layout Plain Layout
 
-gpcheckcat utility in each database: 
+run the gpcheckcat utility in each database: 
 \end_layout
 
 \begin_layout Plain Layout
@@ -6129,12 +6347,12 @@ status open
 
 \begin_layout Plain Layout
 
-During a downtime, with no users on the system, run the 
+During a downtime, with no users on the system, 
 \end_layout
 
 \begin_layout Plain Layout
 
-gpcheckcat utility in each database: 
+run the gpcheckcat utility in each database: 
 \end_layout
 
 \begin_layout Plain Layout
@@ -6159,12 +6377,12 @@ status open
 
 \begin_layout Plain Layout
 
-During a downtime, with no users on the system, run the 
+During a downtime, with no users on the system, 
 \end_layout
 
 \begin_layout Plain Layout
 
-gpcheckcat utility in each database: 
+run the gpcheckcat utility in each database: 
 \end_layout
 
 \begin_layout Plain Layout
@@ -6189,12 +6407,12 @@ status open
 
 \begin_layout Plain Layout
 
-During a downtime, with no users on the system, run the 
+During a downtime, with no users on the system, 
 \end_layout
 
 \begin_layout Plain Layout
 
-gpcheckcat utility in each database: 
+run the gpcheckcat utility in each database: 
 \end_layout
 
 \begin_layout Plain Layout
@@ -6219,12 +6437,12 @@ status open
 
 \begin_layout Plain Layout
 
-During a downtime, with no users on the system, run the 
+During a downtime, with no users on the system, 
 \end_layout
 
 \begin_layout Plain Layout
 
-gpcheckcat utility in each database: 
+run the gpcheckcat utility in each database: 
 \end_layout
 
 \begin_layout Plain Layout
@@ -6329,7 +6547,16 @@ status open
 \begin_layout Plain Layout
 
 Analyze user tables.
- You can use the analyzedb management utility: 
+ You can use the analyzedb 
+\end_layout
+
+\begin_layout Plain Layout
+
+management utility: 
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \begin_layout Plain Layout

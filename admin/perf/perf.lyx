@@ -821,7 +821,12 @@ gp_vmem = ((SWAP + RAM) – (7.5GB + 0.05 * RAM)) / 1.7
 
 \begin_layout Plain Layout
 
-gp_vmem_protect_limit = gp_vmem / max_acting_primary_segments 
+gp_vmem_protect_limit = gp_vmem / 
+\end_layout
+
+\begin_layout Plain Layout
+
+                        max_acting_primary_segments 
 \end_layout
 
 \end_inset
@@ -830,9 +835,12 @@ gp_vmem_protect_limit = gp_vmem / max_acting_primary_segments
 \end_layout
 
 \begin_layout Standard
-另一个重要的数据库服务器配置参数是statement_mem。 此参数设置要执行查询的最大内存量。 要确定此参数的值，请将每个Segment（gp_vmem_p
-rotect_limit）的内存量减去10％的安全余量，除以并发执行的最大查询数。 默认的Greenplum数据库资源队列允许最多20个并发查询。
- 这里有一个公式来计算statement_mem：
+另一个重要的数据库服务器配置参数是statement_mem。 此参数设置要执行查询的最大内存量。 
+\end_layout
+
+\begin_layout Standard
+要确定此参数的值，请将每个Segment（gp_vmem_protect_limit）的内存量减去10％的安全余量，除以并发执行的最大查询数。
+ 默认的Greenplum数据库资源队列允许最多20个并发查询。 这里有一个公式来计算statement_mem：
 \end_layout
 
 \begin_layout Standard
@@ -842,7 +850,12 @@ status open
 
 \begin_layout Plain Layout
 
-(gp_vmem_protect_limit * .9 ) / max_expected_concurrent_queries 
+(gp_vmem_protect_limit * .9 ) / 
+\end_layout
+
+\begin_layout Plain Layout
+
+                        max_expected_concurrent_queries 
 \end_layout
 
 \end_inset
@@ -1441,8 +1454,12 @@ gp_vmem_protect_limit - 设置所有查询进程可以消耗的上限，不应�
 \end_layout
 
 \begin_layout Itemize
-gp_vmem_idle_resource_timeout和gp_vmem_protect_segworker_cache_limit - 用于释放由空闲数据库
-进程持有的Segment主机上的内存。管理员可能希望在具有大量并发性的系统上调整这些设置。 
+gp_vmem_idle_resource_timeout 
+\end_layout
+
+\begin_layout Itemize
+gp_vmem_protect_segworker_cache_limit 用于释放由空闲数据库进程持有的Segment主机上的内存。管理员可能希望在具有大量并
+发性的系统上调整这些设置。 
 \end_layout
 
 \begin_layout Itemize
@@ -1491,7 +1508,21 @@ status open
 
 \begin_layout Plain Layout
 
-$ gpconfig -c gp_resqueue_priority_cpucores_per_segment -v 2 -m 8 
+$ gpconfig -c                                
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  gp_resqueue_priority_cpucores_per_segment  
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  -v 2 -m 8 
 \end_layout
 
 \end_inset
@@ -1535,7 +1566,12 @@ status open
 
 \begin_layout Plain Layout
 
-=# CREATE RESOURCE QUEUE adhoc WITH (ACTIVE_STATEMENTS=3); 
+=# CREATE RESOURCE QUEUE adhoc 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WITH (ACTIVE_STATEMENTS=3); 
 \end_layout
 
 \end_inset
@@ -1562,8 +1598,17 @@ status open
 
 \begin_layout Plain Layout
 
-=# CREATE RESOURCE QUEUE myqueue WITH (ACTIVE_STATEMENTS=20,  MEMORY_LIMIT='2000
-MB');
+=# CREATE RESOURCE QUEUE myqueue 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WITH (ACTIVE_STATEMENTS=20,  
+\end_layout
+
+\begin_layout Plain Layout
+
+         MEMORY_LIMIT='2000MB');
 \end_layout
 
 \end_inset
@@ -1585,7 +1630,12 @@ status open
 
 \begin_layout Plain Layout
 
-=> SELECT * FROM my_big_table WHERE column='value' ORDER BY id; 
+=> SELECT * FROM my_big_table 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE column='value' ORDER BY id; 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1615,18 +1665,32 @@ status open
 
 \begin_layout Plain Layout
 
-=# ALTER RESOURCE QUEUE adhoc WITH (PRIORITY=LOW); 
+=# ALTER RESOURCE QUEUE adhoc 
 \end_layout
 
 \begin_layout Plain Layout
 
-=# ALTER RESOURCE QUEUE reporting WITH (PRIORITY=HIGH);
+   WITH (PRIORITY=LOW); 
 \end_layout
 
 \begin_layout Plain Layout
 
-=# CREATE RESOURCE QUEUE executive WITH (ACTIVE_STATEMENTS=3, PRIORITY=MAX);
- 
+=# ALTER RESOURCE QUEUE reporting 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WITH (PRIORITY=HIGH);
+\end_layout
+
+\begin_layout Plain Layout
+
+=# CREATE RESOURCE QUEUE executive 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WITH (ACTIVE_STATEMENTS=3, PRIORITY=MAX); 
 \end_layout
 
 \end_inset
@@ -1819,7 +1883,7 @@ stats_queue_level = on
 \end_layout
 
 \begin_layout Standard
-要查看分配给资源队列的角色，请执行以下pg_roles和gp_toolkit.gp_resqueue_status系统目录表的查询：
+要查看分配给资源队列的角色，请执行以下查询：
 \begin_inset listings
 inline false
 status open
@@ -1836,7 +1900,12 @@ status open
 
 \begin_layout Plain Layout
 
-   WHERE pg_roles.rolresqueue=gp_toolkit.gp_resqueue_status.queueid;
+   WHERE pg_roles.rolresqueue = 
+\end_layout
+
+\begin_layout Plain Layout
+
+         gp_toolkit.gp_resqueue_status.queueid;
 \end_layout
 
 \end_inset
@@ -1862,7 +1931,12 @@ status open
 
 \begin_layout Plain Layout
 
-   WHERE pg_roles.rolresqueue=gp_toolkit.gp_resqueue_status.queueid;
+   WHERE pg_roles.rolresqueue =
+\end_layout
+
+\begin_layout Plain Layout
+
+         gp_toolkit.gp_resqueue_status.queueid;
 \end_layout
 
 \end_inset
@@ -1883,8 +1957,12 @@ status open
 
 \begin_layout Plain Layout
 
-=# SELECT * FROM gp_toolkit.gp_locks_on_resqueue WHERE lorwaiting='true';
- 
+=# SELECT * FROM gp_toolkit.gp_locks_on_resqueue 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE lorwaiting='true'; 
 \end_layout
 
 \end_inset
@@ -1935,7 +2013,12 @@ status open
 
 \begin_layout Plain Layout
 
-      AND pg_locks.objid=gp_toolkit.gp_resqueue_status.queueid    
+      AND pg_locks.objid =
+\end_layout
+
+\begin_layout Plain Layout
+
+          gp_toolkit.gp_resqueue_status.queueid    
 \end_layout
 
 \begin_layout Plain Layout
@@ -2124,12 +2207,12 @@ SELECT locktype, database, c.relname, l.relation,
 
 \begin_layout Plain Layout
 
-  l.transactionid, l.transaction, l.pid, l.mode, l.granted,  
+  l.transactionid, l.transaction, l.pid, l.mode, 
 \end_layout
 
 \begin_layout Plain Layout
 
-  a.current_query          
+  l.granted, a.current_query          
 \end_layout
 
 \begin_layout Plain Layout
@@ -2255,17 +2338,22 @@ status open
 
 \begin_layout Plain Layout
 
-gpssh -f seg_hosts_file -e 
+gpssh -f seg_hosts_file -e '
 \end_layout
 
 \begin_layout Plain Layout
 
-'source  /usr/local/greenplum-db/greenplum_path.sh; 
+    source  ~/deepgreendb/greenplum_path.sh;
 \end_layout
 
 \begin_layout Plain Layout
 
- gplogfilter -f  con6 /gpdata/*/pg_log/gpdb*.csv' > seglog.out
+    gplogfilter -f  con6 /data/*/pg_log/*.csv' 
+\end_layout
+
+\begin_layout Plain Layout
+
+> seglog.out
 \end_layout
 
 \end_inset

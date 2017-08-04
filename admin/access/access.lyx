@@ -118,7 +118,14 @@ status open
 
 \begin_layout Plain Layout
 
-host   database   role   CIDR-address   authentication-method 
+host   database   role   CIDR-address   
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+       authentication-method 
 \end_layout
 
 \end_inset

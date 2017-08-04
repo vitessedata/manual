@@ -376,7 +376,12 @@ status open
 
 \begin_layout Plain Layout
 
-   WITH (appendonly=true, compresstype=zlib, compresslevel=5);
+   WITH (appendonly=true, compresstype=zlib, 
+\end_layout
+
+\begin_layout Plain Layout
+
+         compresslevel=5);
 \end_layout
 
 \end_inset
@@ -526,7 +531,12 @@ CREATE TABLE sales2 (LIKE sales)
 
 \begin_layout Plain Layout
 
-WITH (appendonly=true, compresstype=lz4, orientation=column); 
+WITH (appendonly=true, compresstype=lz4, 
+\end_layout
+
+\begin_layout Plain Layout
+
+      orientation=column); 
 \end_layout
 
 \begin_layout Plain Layout
@@ -864,8 +874,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE TABLE rank (id int, rank int, year int, gender  char(1), count int)
- 
+CREATE TABLE rank (id int, rank int, year int, 
+\end_layout
+
+\begin_layout Plain Layout
+
+                   gender  char(1), count int) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -906,8 +920,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE TABLE rank (id int, rank int, year int, gender  char(1), count int
- )  
+CREATE TABLE rank (id int, rank int, year int, 
+\end_layout
+
+\begin_layout Plain Layout
+
+                   gender  char(1), count int )  
 \end_layout
 
 \begin_layout Plain Layout
@@ -1034,8 +1052,17 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE TABLE p3_sales (id int, year int, month int, day int,  region text)
- 
+CREATE TABLE p3_sales (id int, 
+\end_layout
+
+\begin_layout Plain Layout
+
+       year int, month int, day int,  
+\end_layout
+
+\begin_layout Plain Layout
+
+       region text) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1289,7 +1316,12 @@ status open
 
 \begin_layout Plain Layout
 
-EXPLAIN SELECT * FROM sales WHERE date='01-07-12' AND  region='usa';
+EXPLAIN SELECT * FROM sales 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE date='01-07-12' AND  region='usa';
 \end_layout
 
 \end_inset
@@ -1317,7 +1349,12 @@ status open
 
 \begin_layout Plain Layout
 
-->  Seq Scan onsales_1_prt_1 sales (cost=0.00..0.00 rows=0 width=0) 
+->  Seq Scan onsales_1_prt_1 sales 
+\end_layout
+
+\begin_layout Plain Layout
+
+               (cost=0.00..0.00 rows=0 width=0) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1327,7 +1364,12 @@ Filter: "date"=01-07-12::date AND region='USA'::text
 
 \begin_layout Plain Layout
 
-->  Seq Scan onsales_1_2_prt_usa sales (cost=0.00..9.87 rows=20 width=40)
+->  Seq Scan onsales_1_2_prt_usa sales 
+\end_layout
+
+\begin_layout Plain Layout
+
+               (cost=0.00..9.87 rows=20 width=40)
 \end_layout
 
 \end_inset
@@ -1368,8 +1410,12 @@ status open
 
 \begin_layout Plain Layout
 
-SELECT partitionboundary, partitiontablename, partitionname,  partitionlevel,
- partitionrank  
+SELECT partitionboundary, partitiontablename, 
+\end_layout
+
+\begin_layout Plain Layout
+
+       partitionname,  partitionlevel, partitionrank  
 \end_layout
 
 \begin_layout Plain Layout
@@ -1596,17 +1642,32 @@ status open
 
 \begin_layout Plain Layout
 
-ALTER TABLE sales ALTER PARTITION FOR (RANK(1)) ADD DEFAULT  PARTITION other;
+ALTER TABLE sales ALTER PARTITION 
 \end_layout
 
 \begin_layout Plain Layout
 
-ALTER TABLE sales ALTER PARTITION FOR (RANK(2)) ADD DEFAULT  PARTITION other;
+   FOR (RANK(1)) ADD DEFAULT  PARTITION other;
 \end_layout
 
 \begin_layout Plain Layout
 
-ALTER TABLE sales ALTER PARTITION FOR (RANK(3)) ADD DEFAULT  PARTITION other;
+ALTER TABLE sales ALTER PARTITION 
+\end_layout
+
+\begin_layout Plain Layout
+
+   FOR (RANK(2)) ADD DEFAULT  PARTITION other;
+\end_layout
+
+\begin_layout Plain Layout
+
+ALTER TABLE sales ALTER PARTITION 
+\end_layout
+
+\begin_layout Plain Layout
+
+   FOR (RANK(3)) ADD DEFAULT  PARTITION other;
 \end_layout
 
 \end_inset
@@ -1678,7 +1739,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE TABLE jan12 (LIKE sales) WITH (appendonly=true); 
+CREATE TABLE jan12 (LIKE sales) 
+\end_layout
+
+\begin_layout Plain Layout
+
+  WITH (appendonly=true); 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1688,12 +1754,17 @@ INSERT INTO jan12 SELECT * FROM sales_1_prt_1 ;
 
 \begin_layout Plain Layout
 
-ALTER TABLE sales EXCHANGE PARTITION FOR (DATE '2012-01-01')  
+ALTER TABLE sales EXCHANGE PARTITION 
 \end_layout
 
 \begin_layout Plain Layout
 
-WITH TABLE jan12;
+  FOR (DATE '2012-01-01')  
+\end_layout
+
+\begin_layout Plain Layout
+
+  WITH TABLE jan12;
 \end_layout
 
 \end_inset
@@ -1794,8 +1865,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE TABLE sales (trans_id int, date date, amount decimal(9,2), region
- text)   
+CREATE TABLE sales (trans_id int, date date, 
+\end_layout
+
+\begin_layout Plain Layout
+
+           amount decimal(9,2), region text)   
 \end_layout
 
 \begin_layout Plain Layout
@@ -1970,7 +2045,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE TABLE sales (id int, year int, qtr int, day int, region text)   
+CREATE TABLE sales (id int, year int, qtr int, 
+\end_layout
+
+\begin_layout Plain Layout
+
+                    day int, region text)   
 \end_layout
 
 \begin_layout Plain Layout
@@ -2010,8 +2090,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE WRITABLE EXTERNAL TABLE my_sales_ext ( LIKE sales_1_prt_yr_1 )  
- 
+CREATE WRITABLE EXTERNAL TABLE 
+\end_layout
+
+\begin_layout Plain Layout
+
+my_sales_ext ( LIKE sales_1_prt_yr_1 )   
 \end_layout
 
 \begin_layout Plain Layout
@@ -2042,7 +2126,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE EXTERNAL TABLE sales_2010_ext ( LIKE sales_1_prt_yr_1)    
+CREATE EXTERNAL TABLE 
+\end_layout
+
+\begin_layout Plain Layout
+
+sales_2010_ext ( LIKE sales_1_prt_yr_1)    
 \end_layout
 
 \begin_layout Plain Layout
@@ -2068,7 +2157,12 @@ status open
 
 \begin_layout Plain Layout
 
-INSERT INTO my_sales_ext SELECT * FROM sales_1_prt_yr_1 ;
+INSERT INTO my_sales_ext SELECT * 
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM sales_1_prt_yr_1 ;
 \end_layout
 
 \end_inset
@@ -2123,7 +2217,12 @@ status open
 
 \begin_layout Plain Layout
 
-ALTER TABLE sales RENAME PARTITION yr_1 TO  yr_1_ext ;
+ALTER TABLE sales 
+\end_layout
+
+\begin_layout Plain Layout
+
+RENAME PARTITION yr_1 TO  yr_1_ext ;
 \end_layout
 
 \end_inset
@@ -2214,7 +2313,12 @@ CREATE EXTERNAL TABLE ext_expenses (
 
 \begin_layout Plain Layout
 
-  name text, date date, amount float4, category text, desc1 text )  
+  name text, date date, amount float4, 
+\end_layout
+
+\begin_layout Plain Layout
+
+  category text, desc1 text )  
 \end_layout
 
 \begin_layout Plain Layout
@@ -2444,7 +2548,14 @@ status open
 
 \begin_layout Plain Layout
 
-$ gpfdist -d /var/load_files -p 8081 -l /home/gpadmin/log &
+$ gpfdist -d /var/load_files -p 8081 -l   
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        /home/gpadmin/log &
 \end_layout
 
 \end_inset
@@ -2456,12 +2567,26 @@ status open
 
 \begin_layout Plain Layout
 
-$ gpfdist -d /var/load_files1 -p 8081 -l /home/gpadmin/log1 & 
+$ gpfdist -d /var/load_files1 -p 8081 -l   
+\backslash
+
 \end_layout
 
 \begin_layout Plain Layout
 
-$ gpfdist -d /var/load_files2 -p 8082 -l /home/gpadmin/log2 &
+        /home/gpadmin/log1 & 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpfdist -d /var/load_files2 -p 8082 -l   
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        /home/gpadmin/log2 &
 \end_layout
 
 \end_inset
@@ -2541,12 +2666,17 @@ status open
 
 \begin_layout Plain Layout
 
-=# CREATE EXTERNAL TABLE ext_expenses (name text,     
+=# CREATE EXTERNAL TABLE ext_expenses (
 \end_layout
 
 \begin_layout Plain Layout
 
-    date date,  amount float4, category text, desc1 text )     
+        name text, date date,  amount float4, 
+\end_layout
+
+\begin_layout Plain Layout
+
+        category text, desc1 text )     
 \end_layout
 
 \begin_layout Plain Layout
@@ -2809,13 +2939,22 @@ SQL:
 
 \begin_layout Plain Layout
 
-    - BEFORE: "INSERT INTO audit VALUES('start', current_timestamp)"   
- 
+    - BEFORE: "INSERT INTO audit 
 \end_layout
 
 \begin_layout Plain Layout
 
-    - AFTER: "INSERT INTO audit VALUES('end', current_timestamp)"
+               VALUES('start', current_timestamp)"    
+\end_layout
+
+\begin_layout Plain Layout
+
+    - AFTER: "INSERT INTO audit 
+\end_layout
+
+\begin_layout Plain Layout
+
+               VALUES('end', current_timestamp)"
 \end_layout
 
 \end_inset
@@ -2957,7 +3096,12 @@ status open
 
 \begin_layout Plain Layout
 
-COPY (SELECT * FROM country WHERE country_name LIKE 'A%')  
+COPY 
+\end_layout
+
+\begin_layout Plain Layout
+
+(SELECT * FROM country WHERE country_name LIKE 'A%')  
 \end_layout
 
 \begin_layout Plain Layout
@@ -3014,7 +3158,12 @@ status open
 
 \begin_layout Plain Layout
 
-=# CREATE EXTERNAL TABLE ext_table (name text, date date) 
+=# CREATE EXTERNAL TABLE ext_table 
+\end_layout
+
+\begin_layout Plain Layout
+
+          (name text, date date) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -3334,18 +3483,18 @@ status open
 \begin_layout Plain Layout
 
     # Specify the working directory.
- Xdrive will cd into     
+ Xdrive 
 \end_layout
 
 \begin_layout Plain Layout
 
-    # this directory at the target machine.
-     
+    # will cd into this directory at the target 
 \end_layout
 
 \begin_layout Plain Layout
 
-    # Logs will be written to ${dir}/log/.
+    # machine.
+ Logs will be written to ${dir}/log/.
      
 \end_layout
 
@@ -3371,18 +3520,18 @@ status open
 
 \begin_layout Plain Layout
 
-    # Specify the target machines and the port Xdrive will     
+    # Specify the target machines and the port Xdrive 
 \end_layout
 
 \begin_layout Plain Layout
 
-    # use for communication.
- For each entry, an Xdrive instance     
+    # will use for communication.
+ For each entry, an 
 \end_layout
 
 \begin_layout Plain Layout
 
-    # will be started.
+    # Xdrive instance will be started.
      
 \end_layout
 
@@ -3684,12 +3833,22 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE WRITABLE EXTERNAL TABLE write_table_name (columnspec) 
+CREATE WRITABLE EXTERNAL TABLE 
 \end_layout
 
 \begin_layout Plain Layout
 
-LOCATION (’xdrive://host:port/mount-point/writer-path’) 
+    write_table_name (columnspec) 
+\end_layout
+
+\begin_layout Plain Layout
+
+LOCATION 
+\end_layout
+
+\begin_layout Plain Layout
+
+    (’xdrive://host:port/mount-point/writer-path’) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -3721,7 +3880,12 @@ status open
 
 \begin_layout Plain Layout
 
-CREATE WRITABLE EXTERNAL TABLE write_lineitem_2016_01 (columnspec) 
+CREATE WRITABLE EXTERNAL TABLE 
+\end_layout
+
+\begin_layout Plain Layout
+
+   write_lineitem_2016_01 (columnspec) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -3731,7 +3895,14 @@ LOCATION
 
 \begin_layout Plain Layout
 
-   (’xdrive://host:port/dw/lineitem/2016/01/lineitem_#UUID#.spq') 
+   (’xdrive://host:port/dw/lineitem/2016/01/      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+                           lineitem_#UUID#.spq') 
 \end_layout
 
 \begin_layout Plain Layout
@@ -3783,17 +3954,32 @@ status open
 
 \begin_layout Description
 
--src.host Source deepgreen cluster connection information host.
+-src.host Source deepgreen cluster connection 
 \end_layout
 
 \begin_layout Description
 
--src.port Source deepgreen cluster connection information port.
+          information host.
 \end_layout
 
 \begin_layout Description
 
--src.user Source deepgreen cluster connection user name.
+-src.port Source deepgreen cluster connection 
+\end_layout
+
+\begin_layout Description
+
+          information port.
+\end_layout
+
+\begin_layout Description
+
+-src.user Source deepgreen cluster connection 
+\end_layout
+
+\begin_layout Description
+
+          user name.
 \end_layout
 
 \begin_layout Description
@@ -3828,8 +4014,22 @@ status open
 
 \begin_layout Description
 
--xdrive.port If using xdrive cluster running in destintion deepgreen cluster,
- user can just specify xdrive port number instead of using xdrive.hosts.
+-xdrive.port If using xdrive cluster running in 
+\end_layout
+
+\begin_layout Description
+
+            destintion deepgreen cluster, user can 
+\end_layout
+
+\begin_layout Description
+
+            just specify xdrive port number instead 
+\end_layout
+
+\begin_layout Description
+
+            of using xdrive.hosts.
  
 \end_layout
 
@@ -3857,27 +4057,42 @@ status open
 
 \begin_layout Description
 
--tablelist A file that each line contains schema.table to transfer.
+-tablelist A file that each line contains schema.table 
 \end_layout
 
 \begin_layout Description
 
--schemaonly Transfer database schema only, do not copy data over.
+           to transfer.
 \end_layout
 
 \begin_layout Description
 
--ifexists=drop/keep/skip If destination table already exists, 
+-schemaonly Transfer database schema only, do not copy 
 \end_layout
 
 \begin_layout Description
 
-        transfer should drop and create new table, or, keep and 
+            data over.
 \end_layout
 
 \begin_layout Description
 
-        use the table, or, skip transfer data for the table.
+-ifexists=drop/keep/skip If destination table already 
+\end_layout
+
+\begin_layout Description
+
+            exists, transfer should drop and create 
+\end_layout
+
+\begin_layout Description
+
+            new table, or, keep and use the table, 
+\end_layout
+
+\begin_layout Description
+
+            or, skip transfer data for the table.
 \end_layout
 
 \begin_layout Description
@@ -3903,12 +4118,12 @@ status open
 \begin_layout Description
 
         in the command contains same data.
- 
+ -verify is 
 \end_layout
 
 \begin_layout Description
 
-        -verify is a readonly operation.
+        a readonly operation.
  It will not transfer data.
 \end_layout
 
