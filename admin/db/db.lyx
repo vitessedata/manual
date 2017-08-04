@@ -3001,5 +3001,665 @@ SET client_encoding TO 'latin1';
 
 \end_layout
 
+\begin_layout Chapter
+使用XDrive
+\end_layout
+
+\begin_layout Section
+简介
+\end_layout
+
+\begin_layout Standard
+首先，XDrive使DeepGreen集群能够访问存储在数据库外部的数据。 DeepGreen数据库使用外部表格接口传送XDrive。要访问数据，用户需要在XD
+rive配置中定义“mount point”。一个常见的情况是将XDrive安装在DeepGreen群集的相同节点中。然后，每个DeepGreen数据库段与在l
+ocalhost上运行的XDrive服务进行通信。 XDrive也可以在与DeepGreen群集完全不同的主机中运行。通过将XDrive与DeepGreen集群
+分离，我们可以在不同的DeepGreen集群之间共享XDrive服务，从而共享数据。
+\end_layout
+
+\begin_layout Standard
+要访问外部数据源，必须通过XDrive来安装外部数据存储。 XDrive启动时从配置文件读取 mount point 设置。此时，XDrive支持安装存储在NF
+S，HDFS和AWS S3中的外部数据。 DeepGreen数据库使用外部表访问XDrive。支持外部表格的数据格式为CSV和SPQ。我们希望在下一个版本中发布
+更多的存储系统和更多数据格式的安装点类型。
+\end_layout
+
+\begin_layout Section
+配置
+\end_layout
+
+\begin_layout Standard
+XDrive 使用 toml 配置文件。 下面给出例子和注释。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# 
+\end_layout
+
+\begin_layout Plain Layout
+
+# This file should be named 'xdrive.toml' 
+\end_layout
+
+\begin_layout Plain Layout
+
+# What follows are configurations for xdrive.
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+# 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+[xdrive]
+\end_layout
+
+\begin_layout Plain Layout
+
+    #     
+\end_layout
+
+\begin_layout Plain Layout
+
+    # Specify the working directory.
+ Xdrive will cd into     
+\end_layout
+
+\begin_layout Plain Layout
+
+    # this directory at the target machine.
+     
+\end_layout
+
+\begin_layout Plain Layout
+
+    # Logs will be written to ${dir}/log/.
+     
+\end_layout
+
+\begin_layout Plain Layout
+
+    #     
+\end_layout
+
+\begin_layout Plain Layout
+
+    dir = "the-home-dir-on-target-machine"
+\end_layout
+
+\begin_layout Plain Layout
+
+    
+\end_layout
+
+\begin_layout Plain Layout
+
+    #     
+\end_layout
+
+\begin_layout Plain Layout
+
+    # Specify the target machines and the port Xdrive will     
+\end_layout
+
+\begin_layout Plain Layout
+
+    # use for communication.
+ For each entry, an Xdrive instance     
+\end_layout
+
+\begin_layout Plain Layout
+
+    # will be started.
+     
+\end_layout
+
+\begin_layout Plain Layout
+
+    #     
+\end_layout
+
+\begin_layout Plain Layout
+
+    host = [ "host1:port1", "host2:port2", ...]
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# 
+\end_layout
+
+\begin_layout Plain Layout
+
+# Each [[xdrive.mount]] specifies a mount-point.
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+# There can be multiple [[xdrive.mount]].
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+# 
+\end_layout
+
+\begin_layout Plain Layout
+
+[[xdrive.mount]] 
+\end_layout
+
+\begin_layout Plain Layout
+
+    name = "name-of-the-mount-point, e.g.
+ mydata" 
+\end_layout
+
+\begin_layout Plain Layout
+
+    scheme = "file system, e.g.
+ nfs, hdfs or s3" 
+\end_layout
+
+\begin_layout Plain Layout
+
+    root = "dir-on-the-file-system, e.g.
+ /data/warehouse/" 
+\end_layout
+
+\begin_layout Plain Layout
+
+    conf = "any-other-conf-specific-to-the-file-system"
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+一个常用的配置是为DeepGreen集群的每个节点在 host 设置一个条。 假设您有一个2节点设置，其中主机是mdw，sdw1-1，sdw1-2，sdw2-1
+，sdw2-2，您可将设置主机配置如下：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+host = [ "sdw1-1:50000", "sdw2-1:50000", ]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+这种设置可以让用户在外部表DDL中用 localhost：50000 连接 XDrive。
+\end_layout
+
+\begin_layout Section
+部署
+\end_layout
+
+\begin_layout Standard
+创建配置文件后，使用xdrctl程序将xdrive部署到所有目标计算机：
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+xdrctl deploy path-to-conf-file
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+启动和停止
+\end_layout
+
+\begin_layout Standard
+部署之后， 启动和停止xdrive也可以使用xdrctl：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+xdrctl {start|stop} path-to-conf-file
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+注意，必须首先部署成功，才能用 xdrctl 启动和停止
+\end_layout
+
+\begin_layout Section
+mount point
+\end_layout
+
+\begin_layout Standard
+利用与在UNIX中安装文件系统相同的概念，mount point 是表示XDrive中文件系统目录的符号。 它由4个部分组成：mount point
+ 名称，所有协议或文件系统类型，目录映射，最后是该mount point特有的其他配置。
+\end_layout
+
+\begin_layout Standard
+例如，为了使用在hd.example.net的端口9000上运行Hadoop HDFS目录 ／data/warehouse，我们可以指定以下配置：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+[[xdrive.mount]] 
+\end_layout
+
+\begin_layout Plain Layout
+
+name = "dw" 
+\end_layout
+
+\begin_layout Plain Layout
+
+scheme = "hdfs" 
+\end_layout
+
+\begin_layout Plain Layout
+
+root = "/data/warehouse" 
+\end_layout
+
+\begin_layout Plain Layout
+
+conf = "name_node=hd.example.net, port=9000"
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+这样，HDFS中/ data / warehouse下的文件将可以通过XDrive上的符号dw访问。
+\end_layout
+
+\begin_layout Subsection
+AWS S3 Mount Point
+\end_layout
+
+\begin_layout Standard
+对于AWS S3，将方案指定为“s3”，并将您的凭据放在 $HOME/.aws/credentials 文件里（在拥有xdrive进程的用户的主目录下）。
+\end_layout
+
+\begin_layout Subsection
+Hadoop Mount Point
+\end_layout
+
+\begin_layout Standard
+您必须在conf设置中指定name_node和端口号。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+conf = "name_node=192.168.1.100, port=50070"
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+使用外部表读XDrive
+\end_layout
+
+\begin_layout Standard
+您可以通过Deepgreen DB中提供的外部表格机制访问XDrive上的数据。 语法与其它外部表格基本相同。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+CREATE EXTERNAL TABLE table_name (columnspec) 
+\end_layout
+
+\begin_layout Plain Layout
+
+LOCATION (’xdrive://host:port/mount-point/reader-path’) 
+\end_layout
+
+\begin_layout Plain Layout
+
+FORMAT ’CSV’ [csv options]      
+\end_layout
+
+\begin_layout Plain Layout
+
+       | ’SPQ’;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+XDrive目前支持两种格式：CSV和SPQ。 SPQ 是DeepGreen专有的高性能列存储格式。使用plugin系统后，我们支持在HDFS上的Parquet
+， ORC文件。
+\end_layout
+
+\begin_layout Standard
+reader-path指定可以使用的UNIX文件路径匹配模式。 如果我们按时间分区了我们的lineitem spq表，并将表片段存储在路径下：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+/data/warehouse/lineitem/YYYY/MM/lineitem_part.spq
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+那么可以用如下语法读取所有的数据，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+LOCATION ('xdrive://host:port/dw/lineitem/*/*/lineitem*.spq')
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+使用外部表写XDrive
+\end_layout
+
+\begin_layout Standard
+可写外部表结构写入XDrive的DDL语法稍微复杂一点，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+CREATE WRITABLE EXTERNAL TABLE write_table_name (columnspec) 
+\end_layout
+
+\begin_layout Plain Layout
+
+LOCATION (’xdrive://host:port/mount-point/writer-path’) 
+\end_layout
+
+\begin_layout Plain Layout
+
+FORMAT ’CSV’ [csv options]      
+\end_layout
+
+\begin_layout Plain Layout
+
+       | ’SPQ’;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+与阅读器路径不同，写的路径有自己独特的定义。 虽然读取器路径通过路径匹配可以解析为XDrive上的多个文件，但是写入器路径应映射到仅一个目标文件。
+ 在外部表的任何INSERT上，目标文件将被创建（如果它已经存在，将被覆盖） 并写入数据。 为了便于为写入创建唯一的文件名，可以使用#UUID＃替换模式注释写路
+径。 写时＃UUID＃将被一个生成的UUID替换，这样，每个INSERT语句将创建一个独特的新文件。
+\end_layout
+
+\begin_layout Standard
+继续我们上面的例子，我们将使用以下外部表将lineitems插入到2016年1月分区：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+CREATE WRITABLE EXTERNAL TABLE write_lineitem_2016_01 (columnspec) 
+\end_layout
+
+\begin_layout Plain Layout
+
+LOCATION 
+\end_layout
+
+\begin_layout Plain Layout
+
+   (’xdrive://host:port/dw/lineitem/2016/01/lineitem_#UUID#.spq') 
+\end_layout
+
+\begin_layout Plain Layout
+
+FORMAT ’SPQ’;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+请注意，上面读的XDrive 外部表定义中，读路径使用了通配符。 新写的文件可以匹配，从而数据可以从外部表读出。
+\end_layout
+
+\begin_layout Section
+dg transfer
+\end_layout
+
+\begin_layout Standard
+dg transfer 是DeepGreen 数据库之间的高性能，可扩展的数据传输工具。 功能上大体与 gptransfer 类似，但性能要好很多。
+ 要设置传输，用户应该已经启动源和目标DeepGreen群集。 dg传输需要一个xdrive集群，通常是在目标DeepGreen集群上启动的xdrive集群。
+ 请参考dg xdrive如何初始化，启动xdrive集群。 Dg传输还需要在源数据库中正确设置dg_utilts。 一旦正确设置，用户可以使用数据库传输。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+dg transfer -src.host= -src.port= -src.db= 
+\end_layout
+
+\begin_layout Plain Layout
+
+            -dst.host= -dst.port= -dst.db=
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+dg transfer 支持如下选项，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Description
+
+-src.host Source deepgreen cluster connection information host.
+\end_layout
+
+\begin_layout Description
+
+-src.port Source deepgreen cluster connection information port.
+\end_layout
+
+\begin_layout Description
+
+-src.user Source deepgreen cluster connection user name.
+\end_layout
+
+\begin_layout Description
+
+-src.db Source database name.
+\end_layout
+
+\begin_layout Description
+
+-dst.host Destination deepgreen cluster host.
+\end_layout
+
+\begin_layout Description
+
+-dst.port Destination deepgreen cluster port.
+\end_layout
+
+\begin_layout Description
+
+-dst.user Destination deepgreen cluster user name.
+\end_layout
+
+\begin_layout Description
+
+-dst.db Destination database name.
+\end_layout
+
+\begin_layout Description
+
+-xdrive.hosts XDrive hosts to use for transfer.
+\end_layout
+
+\begin_layout Description
+
+-xdrive.port If using xdrive cluster running in destintion deepgreen cluster,
+ user can just specify xdrive port number instead of using xdrive.hosts.
+ 
+\end_layout
+
+\begin_layout Description
+
+-schema The schema to transfer.
+ If not specified, 
+\end_layout
+
+\begin_layout Description
+
+        all schemas will be transfered.
+\end_layout
+
+\begin_layout Description
+
+-table The table to transfer.
+ If not specified, 
+\end_layout
+
+\begin_layout Description
+
+       all tables in the schema will be transfered.
+\end_layout
+
+\begin_layout Description
+
+-tablelist A file that each line contains schema.table to transfer.
+\end_layout
+
+\begin_layout Description
+
+-schemaonly Transfer database schema only, do not copy data over.
+\end_layout
+
+\begin_layout Description
+
+-ifexists=drop/keep/skip If destination table already exists, 
+\end_layout
+
+\begin_layout Description
+
+        transfer should drop and create new table, or, keep and 
+\end_layout
+
+\begin_layout Description
+
+        use the table, or, skip transfer data for the table.
+\end_layout
+
+\begin_layout Description
+
+-keepowner If keep destination table owner.
+\end_layout
+
+\begin_layout Description
+
+-index Rebuild index after transfer.
+\end_layout
+
+\begin_layout Description
+
+-analyze Run analyze after transfer.
+\end_layout
+
+\begin_layout Description
+
+-verify Verify the database, or schema, or table specified 
+\end_layout
+
+\begin_layout Description
+
+        in the command contains same data.
+ 
+\end_layout
+
+\begin_layout Description
+
+        -verify is a readonly operation.
+ It will not transfer data.
+\end_layout
+
+\begin_layout Description
+
+-verbose Print more information during transfer.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \end_body
 \end_document
