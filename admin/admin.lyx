@@ -185,6 +185,41 @@ DEEPGREEN 采用无共享构架，数据可分布到多个节点。 各节点 �
 客户通过MASTER接入集群。 DEEPGREEN 支持 psql, JDBC, ODBC 等各种常见客户端。 SQL 在MASTER进行优化，分配到各个
  SEGMENT。 数据存储在各个SEGMENT中， MASTER并不存用户数据，而只存系统字典。查询优化后在SEGMENT中执行，最终结果由MASTER返回给
 客户端。做为并行数据库，DEEPGREEN 的MASTER和SEGMENT之间使用二阶段提交 （TWO PHASE COMMIT， 2PC），保证并发和事务性。
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+MPP构架 
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename pic/highlevel_arch.jpg
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard

@@ -990,23 +990,14 @@ Run as root to sync clock.
 \end_layout
 
 \begin_layout Standard
+有关如何创建，请参考gpinitsystem文档 一个cluster.conf配置文件。 DEEPGREEN 建议数据库 Encoding 使用UTF-8，
+ COLLATION 使用 C。
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
-
-\begin_layout Plain Layout
-
-Please refer to gpinitsystem documentation for how to create 
-\end_layout
-
-\begin_layout Plain Layout
-
-a cluster.conf configuration file
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
 
 \begin_layout Plain Layout
 
@@ -1018,14 +1009,16 @@ We suggeset using C as LC_COLLATE.
 $ gpinitsystem -c cluster.conf -h hostfile --lc-collate=C
 \end_layout
 
-\begin_layout Plain Layout
+\end_inset
+
 
 \end_layout
 
-\begin_layout Plain Layout
-
-After gpinitsystem completed successfully, add to .bashrc
-\end_layout
+\begin_layout Standard
+gpinitsystem 成功后，把下面环境变量加入 Master 上管理员的 $HOME/.bashrc 中。
+\begin_inset listings
+inline false
+status open
 
 \begin_layout Plain Layout
 
@@ -1037,9 +1030,16 @@ After gpinitsystem completed successfully, add to .bashrc
 export MASTER_DATA_DIRECTORY=/data/master/dg-1
 \end_layout
 
-\begin_layout Plain Layout
+\end_inset
+
 
 \end_layout
+
+\begin_layout Standard
+我们建议在所有数据库中建立DEEPGREEN扩展功能，并创建一个默认用户数据库。
+\begin_inset listings
+inline false
+status open
 
 \begin_layout Plain Layout
 
@@ -1063,10 +1063,6 @@ Create a user database for convinience
 \begin_layout Plain Layout
 
 $ createdb $USER
-\end_layout
-
-\begin_layout Plain Layout
-
 \end_layout
 
 \end_inset

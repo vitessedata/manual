@@ -100,6 +100,10 @@ ath.sh 并设定 MASTER_DATA_DIRECTORY 环境变量。
 \end_layout
 
 \begin_layout Standard
+在Master上执行gpstart 或 gpstop 来启动，重启, 改变系统设置。 常见命令如下，
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
@@ -581,7 +585,51 @@ vacuumdb 回收数据库存储空间，分析数据库统计信息
 
 \begin_layout Standard
 所有这些程序都可以使用 -d, -h, -p, -U 或环境变量设定数据库名，host， 端口， 用户名这些连接参数。根据DEEPGREEN 连接设置，用户可能
-需要提供密码，或设置 ~/.pgpass文件。
+需要提供密码，或设置 ~/.pgpass文件。以 psql 为例，
+\end_layout
+
+\begin_layout Itemize
+连接数据库，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql -d gpdatabase -h master_host -p 5432 -U gpadmin
+\end_layout
+
+\end_inset
+
+ 如不指定选项值， 则使用环境变量。 比如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql pgdatabase
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+连接到数据库后，psql提供了一个提示，其中包含psql当前连接到的数据库的名称，后跟 =>（或=# 如果您是数据库超级用户）。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpdatabase=>
+\end_layout
+
+\end_inset
+
+之后就可以执行SQL语句。 SQL语句在psql中以；触发执行。
 \end_layout
 
 \begin_layout Section
@@ -589,7 +637,7 @@ vacuumdb 回收数据库存储空间，分析数据库统计信息
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 支持如下 API。 一般来说，客户端需要下载，安装驱动程序。
+DEEPGREEN 支持如下 API。 一般来说，DEEPGREEN 客户端协议与 PostgreSQL 一致。 对不同接口，客户端需要下载，安装驱动程序。
 \end_layout
 
 \begin_layout Standard
@@ -1004,14 +1052,29 @@ Reset session level parameter
 \end_layout
 
 \begin_layout Standard
+SQL命令SHOW允许您查看当前服务器配置参数设置。 例如，要查看所有参数的设置：
 \begin_inset listings
 inline false
 status open
 
 \begin_layout Plain Layout
 
-Show local parameters using gpconfig, for example
+$ psql -c 'SHOW ALL;'
 \end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+SQL 的 SHOW 命令仅列出Master的设置。 要查看整个系统（主节点和所有段）中特定参数的值，请使用gpconfig实用程序。 例如：
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
 
 \begin_layout Plain Layout
 
@@ -1020,16 +1083,6 @@ $ gpconfig --show max_connections
 
 \begin_layout Plain Layout
 
-\end_layout
-
-\begin_layout Plain Layout
-
-Show master parameters using SQL, for example
-\end_layout
-
-\begin_layout Plain Layout
-
-$ psql -c 'SHOW ALL;'
 \end_layout
 
 \end_inset
@@ -1096,6 +1149,29 @@ Master 镜像
 \end_layout
 
 \begin_layout Subsection
+双集群
+\end_layout
+
+\begin_layout Standard
+可以通过维护两个存储相同数据的数据库集群来提供额外的冗余级别。
+\end_layout
+
+\begin_layout Standard
+在双重集群中保持数据同步的两种方法是“双ETL”和“备份/恢复”。
+\end_layout
+
+\begin_layout Standard
+双ETL提供了与主集群相同数据的完整备用集群。 ETL（提取，转换和加载）是指将输入数据清理，转换，验证和加载到数据仓库中的过程。使用双ETL，此过程并行执行两
+次，每次在每个集群上执行一次，并且每次都进行验证。它还允许在两个群集上查询数据，使查询吞吐量翻番。应用程序可以利用这两个集群，并确保ETL在两个集群上都能成功和
+验证。
+\end_layout
+
+\begin_layout Standard
+要使用备份/还原方法维护双集群，请创建主集群的备份，然后在辅集群上进行备份。与双ETL策略相比，该方法需要较长的时间来同步辅助集群上的数据，但需要开发更少的应用
+程序。备份第二个集群是在数据修改和ETL都不频繁的情况下的理想选择。
+\end_layout
+
+\begin_layout Subsection
 失效检测与系统修复
 \end_layout
 
@@ -1115,21 +1191,12 @@ DEEPGREEN 的Postgres进程生成一个叫 ftsprobe 的子进程来检测失效�
 \end_layout
 
 \begin_layout Subsection
-双集群
-\end_layout
-
-\begin_layout Standard
-也可以配置两个相同的集群，存储同样的数据。一种做法是当ETL的时候，应该并行进行俩个ETL过程。 另一种做法是通过 backup/restore
- primary 集群中的数据导入 standby 集群。第二种做法数据同步的时间要相对长一些，但对应用层的影响较小。
-\end_layout
-
-\begin_layout Subsection
 Backup/Restore
 \end_layout
 
 \begin_layout Standard
 定时使用 gpcrondump 来 backup数据库可保护数据。分离的，异地的，安全存储是数据安全的一个重要的设计考虑。DEEPGREEN 支持对
- append-optimized 表进行增量backup。 对于heap表，只支持全表的backup。
+ append-optimized 表进行增量backup。 对于heap表，只支持全表的backup。详细情况请看后面专门论述。
 \end_layout
 
 \begin_layout Section
@@ -1151,7 +1218,7 @@ Segment Mirror允许在Primary失效时切换到Mirror。DEEPGREEN 缺省设置�
 \end_layout
 
 \begin_layout Standard
-在现有系统同一组机器中添加Mirror需要
+在现有系统同一组机器中添加Mirror需要如下操作，
 \end_layout
 
 \begin_layout Enumerate
@@ -1215,8 +1282,28 @@ status open
 \begin_layout Plain Layout
 
 filespaceOrder=[filespace1_fsname[:filespace2_fsname:...]  mirror[content]=content:
-address:port:mir_replication_port: pri_replication_port:fselocation[:fselocation
-:...]
+address:port 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+:mir_replication_port                
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+:pri_replication_port                
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+:fselocation[:fselocation:...]
 \end_layout
 
 \end_inset
@@ -1312,7 +1399,14 @@ status open
 
 \begin_layout Plain Layout
 
-$ psql dbname -c 'SELECT procpid, state FROM pg_stat_replication;' 
+$ psql dbname -c 'SELECT procpid, state 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM pg_stat_replication;' 
 \end_layout
 
 \end_inset
@@ -1415,7 +1509,14 @@ status open
 
 \begin_layout Plain Layout
 
-$ psql -c "SELECT * FROM gp_segment_configuration WHERE status='d';" 
+$ psql -c "SELECT * FROM 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gp_segment_configuration WHERE status='d';" 
 \end_layout
 
 \end_inset
@@ -1477,15 +1578,28 @@ status open
 
 \begin_layout Plain Layout
 
-$ gpssh -f seg_hosts_file -e 
+$ gpssh -f seg_hosts_file -e                        
 \backslash
 
 \end_layout
 
 \begin_layout Plain Layout
 
-'source  /usr/local/greenplum-db/greenplum_path.sh ; gplogfilter -t  /data1/prima
-ry/*/pg_log/gpdb*.log' > seglog.out
+'source  /usr/local/greenplum-db/greenplum_path.sh; 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ gplogfilter -t  /data1/primary/*/pg_log/gpdb*.log' 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+> seglog.out
 \end_layout
 
 \end_inset
@@ -2189,6 +2303,92 @@ status collapsed
 
 \end_layout
 
+\begin_layout Subsection
+Backup/Restore 操作概述
+\end_layout
+
+\begin_layout Standard
+数据库备份和还原实用程序支持备份文件的各种位置：
+\end_layout
+
+\begin_layout Itemize
+使用gpcrondump实用程序，备份文件可能会保存在默认位置，即Master和Segment的db_dumps子目录中，也可以保存到使用gpcrondump
+ -u选项指定的其他目录中。 
+\end_layout
+
+\begin_layout Itemize
+备份文件可以通过命名管道保存到任何网络可访问的位置。 
+\end_layout
+
+\begin_layout Itemize
+保存到默认位置的备份文件可能会移动到网络上的归档服务器。
+\end_layout
+
+\begin_layout Standard
+您可以创建包含所选数据库对象的转储：
+\end_layout
+
+\begin_layout Itemize
+您可以备份整个数据库， 或Schema， 或用一个文件指定备份的表。 
+\end_layout
+
+\begin_layout Itemize
+您可以指定从备份中排除的Schema，或用一个文件指定不备份的表。
+\end_layout
+
+\begin_layout Itemize
+除了数据库对象，gpcrondump还可以备份配置文件pg_hba.conf，pg_ident.conf和postgresql.conf以及全局数据库对象，如角色和表
+空间。
+\end_layout
+
+\begin_layout Standard
+您可以创建增量备份：
+\end_layout
+
+\begin_layout Itemize
+增量备份仅能在AO表上使用。 
+\end_layout
+
+\begin_layout Itemize
+对于分区化优化表，仅备份已更改的附加优化/面向列的表分区。 
+\end_layout
+
+\begin_layout Itemize
+增量备份包括堆表中全部数据。 
+\end_layout
+
+\begin_layout Itemize
+使用gpcrondump --incremental标志来指定增量备份。 
+\end_layout
+
+\begin_layout Itemize
+恢复增量备份需要完全备份和所有后续增量备份。
+\end_layout
+
+\begin_layout Standard
+gpdbrestore实用程序提供了许多选项：
+\end_layout
+
+\begin_layout Itemize
+默认情况下，gpdbrestore将数据恢复到同一个创建备份的数据库。 
+\end_layout
+
+\begin_layout Itemize
+--redirect 允许您将备份还原到其他数据库。 
+\end_layout
+
+\begin_layout Itemize
+恢复的数据库可以被删除并重新创建，但默认是还原到现有的数据库。 
+\end_layout
+
+\begin_layout Itemize
+可以通过在命令行选择恢复的表。 
+\end_layout
+
+\begin_layout Itemize
+您可以从归档服务器的备份文件还原数据库。
+\end_layout
+
 \begin_layout Section
 使用 gpcrondump
 \end_layout
@@ -2209,7 +2409,47 @@ status open
 \end_layout
 
 \begin_layout Standard
-gpcrondump只有一个必须的命令行选项，-x 数据库名。缺省会在 db_dumps／YYYYMMDD 目录中产生全备份。可以使用-u选项指定备份目标目录。
+gpcrondump只有一个必须的命令行选项，-x 数据库名。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x mydb
+\end_layout
+
+\end_inset
+
+缺省会在 db_dumps／YYYYMMDD 目录中产生全备份。可以使用-u选项指定备份目标目录。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump mydb -u /backups
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+gpcrondump实用程序在指定的目录中创建db_dumps子目录。 如果每个主机有多个Primary Segment，则主机上的所有Segment
+ 将其备份文件写入同一目录。 这样可以将备份整合到单个目录或存储设备。
+\end_layout
+
+\begin_layout Standard
+在db_dumps目录中，备份将以“YYYYMMDD”格式保存到目录中，例如：dat_directory / db_dumps / 20151012，用于在20
+15年10月12日创建的备份。目录中的备份文件名包含备份的完整时间戳，格式为 YYYYMMDDHHMMSS，例如gp_dump_0_2_201510121959
+16.gz。 gpdbrestore命令默认使用最新的备份，但您可以指定要还原的早期备份。
+\end_layout
+
+\begin_layout Standard
+如果包含-g选项，gpcrondump将配置文件与备份保存在一起。这些配置文件被转储到Master 或Segment 目录中的db_dumps
+ / YYYYMMDD / config_files_timestamp.tar。 
 \end_layout
 
 \begin_layout Subsection
@@ -2341,12 +2581,41 @@ Exclude a list of schemas in a file
 \end_layout
 
 \begin_layout Standard
-gpcrondump可以用--incremental选项对append optimized表或分区表进行增量备份。一个全备份和之后的一系列增量备份形成一个备份集
-合，可以恢复数据库。 如果集群的SEGMENT配置发生了变化，那么不能使用增量备份，必须做全备份。 增量备份例子如下，
+gpcrondump可以用--incremental选项对append optimized表或分区表进行增量备份。如果在上一次完全备份或增量备份后，在AO表上执
+行了以下操作之一，则增量备份只会备份数据变化：
+\end_layout
+
+\begin_layout Itemize
+ALTER TABLE
+\end_layout
+
+\begin_layout Itemize
+DELETE
+\end_layout
+
+\begin_layout Itemize
+INSERT
+\end_layout
+
+\begin_layout Itemize
+TRUNCATE
+\end_layout
+
+\begin_layout Itemize
+UPDATE 
+\end_layout
+
+\begin_layout Itemize
+DROP然后重新创建表
 \end_layout
 
 \begin_layout Standard
-首先需要做全备份，
+对于分区化优化表，仅备份已更改的分区。一个全备份和之后的一系列增量备份形成一个备份集合，可以恢复数据库。 如果集群的SEGMENT配置发生了变化，那么不能使用增
+量备份，必须做全备份。 
+\end_layout
+
+\begin_layout Standard
+增量备份例子如下，首先需要做全备份，
 \begin_inset listings
 inline false
 status open
@@ -2375,6 +2644,176 @@ gpcrondump -x mytest -u /backupdir --incremental
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+指定-u选项时，将在每个数据库主机的/ backupdir目录中创建备份。文件名包括以下时间戳键。例如，
+\end_layout
+
+\begin_layout Itemize
+20160514054532（完全备份） 
+\end_layout
+
+\begin_layout Itemize
+20160714095512 
+\end_layout
+
+\begin_layout Itemize
+20160914081205 
+\end_layout
+
+\begin_layout Itemize
+20161114064330（完全备份） 
+\end_layout
+
+\begin_layout Itemize
+20170114051246 
+\end_layout
+
+\begin_layout Standard
+要创建新的增量备份，您需要最新的增量备份20170114051246和上述完全备份20161114064330.
+ 另外，为备份集一部分的，任何增量备份必须指定相同的-u选项。
+\end_layout
+
+\begin_layout Standard
+要使用增量备份恢复数据库20160914081205，您需要增量备份20160914081205和20160714095512，并且完全备份2016051405
+4532。
+\end_layout
+
+\begin_layout Standard
+要使用增量备份20170114051246恢复mytest数据库，您只需要增量备份和完全备份即可实现.111124064330.
+\end_layout
+
+\begin_layout Standard
+restore命令将与此命令类似。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpdbrestore -t 20170114051246 -u /backupdir
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Backup 进程和锁
+\end_layout
+
+\begin_layout Standard
+在备份期间，gpcrondump锁定pg_class系统表和备份的表。使用EXCLUSIVE锁锁定pg_class表可确保在gpcrondump锁定要使用ACC
+ESS SHARE锁备份的表之前，不会添加，删除或更改任何表。
+\end_layout
+
+\begin_layout Standard
+下面的步骤描述了gpcrondump过程，包括在锁之前发生的情况，以及锁定后，以及锁被删除。如果指定了多个数据库，则对每个数据库依次执行此过程。
+\end_layout
+
+\begin_layout Itemize
+gpcrondump解析命令行参数，并验证是否正确指定了选项和参数。 如果
+\end_layout
+
+\begin_layout Itemize
+指定了以下任何过滤器选项，gpcrondump确定要备份的表的集合。否则，所有表都包含在备份中。 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+-s schema_name - 包含由指定模式限定的所有表。 
+\end_layout
+
+\begin_layout Itemize
+-S schema_name - 排除指定模式限定的所有表。 
+\end_layout
+
+\begin_layout Itemize
+--schema-file = filename - 包含由文件名中列出的Schema的表。
+\end_layout
+
+\begin_layout Itemize
+--exclude-schema-file = filename - 排除由文件名中列出的Schema的所有表。 
+\end_layout
+
+\begin_layout Itemize
+-t schema.table_name - 指定的表。 
+\end_layout
+
+\begin_layout Itemize
+-T schema.table_name - 排除指定的表。 
+\end_layout
+
+\begin_layout Itemize
+--table-file = filename - 文件名中指定的表。 
+\end_layout
+
+\begin_layout Itemize
+--exclude-table-file = filename - 文件名中指定的表之外的所有表。 
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+gpcrondump验证备份目标： 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+验证数据库是否存在。 
+\end_layout
+
+\begin_layout Itemize
+验证指定表或模式是否存在。 
+\end_layout
+
+\begin_layout Itemize
+验证每个Primary Segment是否已启动。 
+\end_layout
+
+\begin_layout Itemize
+验证备份目录是否存在，并且可以为主节点和每个节段写入。 
+\end_layout
+
+\begin_layout Itemize
+验证足够的磁盘空间可用于备份每个Segment。请注意，如果多个Segment备份到同一个磁盘卷，则此磁盘空间检查无法确保所有Segment都有可用空间。
+ 
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+在目录表pg_class上放置一个EXCLUSIVE锁。锁仅允许在表上进行并发读取操作。当锁定在目录表上时，不能在数据库中创建，更改或删除诸如表，索引和视图之类
+的关系。
+\end_layout
+
+\begin_layout Itemize
+gpcrondump使用ACCESS SHARE锁定要备份的表。 
+\end_layout
+
+\begin_layout Itemize
+创建和分派线程以执行数据库备份。 
+\end_layout
+
+\begin_layout Itemize
+当线程在所有必需的表上获取了ACCESS SHARED锁时，将创建dump_dir / gp_lockfile_timestamp锁定文件，并在备份表时，发送g
+pcrondump以释放pg_class目录表上的EXCLUSIVE锁。 
+\end_layout
+
+\begin_layout Itemize
+gpcrondump检查每个Primary Segment的状态文件是否有任何错误报告。如果备份失败，并指定了-r标志，则备份将回滚。 
+\end_layout
+
+\begin_layout Itemize
+目标表上的ACCESS SHARE锁定被释放。 
+\end_layout
+
+\begin_layout Itemize
+如果备份成功，并且使用-R选项指定了备份后脚本，gpcrondump将立即运行该脚本。 
+\end_layout
+
+\begin_layout Itemize
+gpcrondump报告备份状态，配置后发送电子邮件，并将备份状态保存在数据库中的public.gpcrondump_history表中。
 \end_layout
 
 \begin_layout Subsection
@@ -2610,6 +3049,18 @@ gpcrondump -x testdb -K 20150519160000 -u /backups
 
 \begin_layout Standard
 同样gpdbrestore可以从named pipes恢复数据库。过程大体和上面反向。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpdbrestore -x testdb -t 20150519160000 -u /backups
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -5216,6 +5667,33 @@ N
 
 \begin_layout Standard
 如果一个表迁移失败，gptansfer 会报告，并把表名字写入一个失败表名文件。 此文件格式与 -f 选项的文件格式相同，故而可以使用 -f 重试。
+\end_layout
+
+\begin_layout Section
+最佳做法
+\end_layout
+
+\begin_layout Standard
+通过使用--batch-size和--sub-batch-size命令行选项时， 注意不要指定太多的并行性。 不要超过主机内存。太多的子进程可能会耗尽内存，导致
+Python内存不足错误。从较小的批量大小和分批批量开始，并根据的经验增加。
+\end_layout
+
+\begin_layout Standard
+分阶段传输数据库。首先，使用-schema-only和-d数据库选项运行gptransfer，然后分阶段传输表。使用--schema-only选项运行gptra
+nsfer后，请确保添加--truncate或--drop选项以防止由于表已经存在而导致失败。
+\end_layout
+
+\begin_layout Standard
+小心选择gpfdist和外部表参数，如外部表数据的分隔符和最大行长度。例如，不要选择数据中可能出现的字符做分隔符。
+\end_layout
+
+\begin_layout Standard
+如果您有许多空表要传输，请考虑使用DDL脚本而不是gptransfer。用于设置每个表进行传输的gptransfer开销较大，不是传输空表的有效方法。
+\end_layout
+
+\begin_layout Standard
+gptransfer在传输数据之前创建表索引。这会减慢数据传输，因为索引在数据插入表中同时被更新。对于大型表，特别要考虑在运行gptransfer之前删除索引，
+并在传输完成时重新创建索引。
 \end_layout
 
 \begin_layout Chapter

@@ -92,7 +92,7 @@
 
 \begin_layout Standard
 数据库中的使用数据定义语言（DDL）创建和管理数据库对象。DEEPGREEN 的数据库，Schema， 等于PostgreSQL并没有不同。但表的DDL与Pos
-tgreSQL比较，有更多的选项和功能。
+tgreSQL比较，有更多的选项和功能。我们仅描述创建，管理表。
 \end_layout
 
 \begin_layout Section
@@ -202,6 +202,10 @@ DDL允许有FOREIGN KEY约束，但并不强制。
 为了获得最佳性能，所有Segment应处理大体相等份额查询工作负载。如果表的数据分发策略和查询不匹配，查询工作负载可能会发生倾斜。
 \end_layout
 
+\begin_layout Standard
+主键始终是表的分配列。 如果没有主键存在，但唯一键存在，这是表的分配列。
+\end_layout
+
 \begin_layout Section
 选择表的存储方式
 \end_layout
@@ -216,7 +220,7 @@ DDL允许有FOREIGN KEY约束，但并不强制。
 \end_layout
 
 \begin_layout Subsection
-Append Optimized 
+Append Optimized （AO）
 \end_layout
 
 \begin_layout Standard
@@ -285,6 +289,274 @@ DeepGreen 提供行存，列存或两者的组合。
 \begin_layout Standard
 DeepGreen 支持 ZLIB， LZ4， ZSTD 压缩算法。相比，LZ4 最快，但压缩比不如ZLIB和ZSTD。 ZSTD 和 ZLIB压缩比类似，但Z
 STD要更快。
+\end_layout
+
+\begin_layout Subsection
+例子
+\end_layout
+
+\begin_layout Itemize
+面向行的堆表是默认的存储类型。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> CREATE TABLE foo (a int, b text) DISTRIBUTED BY (a);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+使用CREATE TABLE命令的WITH子句声明表存储选项。 例如，创建一个没有压缩的append优化的表
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> CREATE TABLE bar (a int, b text)      
+\end_layout
+
+\begin_layout Plain Layout
+
+   WITH (appendonly=true)     
+\end_layout
+
+\begin_layout Plain Layout
+
+   DISTRIBUTED BY (a);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+使用面向列的存储的表必须是AO表。 例如，创建一个面向列的表
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> CREATE TABLE bar (a int, b text)      
+\end_layout
+
+\begin_layout Plain Layout
+
+   WITH (appendonly=true, orientation=column)     
+\end_layout
+
+\begin_layout Plain Layout
+
+   DISTRIBUTED BY (a);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+CREATE TABLE命令的WITH子句声明表存储选项。 使用压缩的表必须是AO表。 例如，创建一个压缩级别为5的zlib压缩的AO表
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> CREATE TABLE foo (a int, b text)     
+\end_layout
+
+\begin_layout Plain Layout
+
+   WITH (appendonly=true, compresstype=zlib, compresslevel=5);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+还可以为列指定压缩方式
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+CREATE TABLE T1 (
+\end_layout
+
+\begin_layout Plain Layout
+
+  c1 int ENCODING (compresstype=zlib),                   
+\end_layout
+
+\begin_layout Plain Layout
+
+  c2 char ENCODING (compresstype=lz4),
+\end_layout
+
+\begin_layout Plain Layout
+
+  c3 char)
+\end_layout
+
+\begin_layout Plain Layout
+
+WITH (appendonly=true, orientation=column);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+改变一个表
+\end_layout
+
+\begin_layout Standard
+ALTER TABLE命令更改表的定义。 使用ALTER TABLE来更改表属性，如列定义，分发策略，存储模型和分区结构。 例如，要为表列添加非空约束：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> ALTER TABLE address ALTER COLUMN street SET NOT NULL;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+更改表分布
+\end_layout
+
+\begin_layout Standard
+ALTER TABLE提供了更改表的分发策略的选项。当表分配选项更改时，表数据重新分布在磁盘上。您还可以使用现有的分发策略重新分发表数据。 
+\end_layout
+
+\begin_layout Subsubsection
+更改分配策略
+\end_layout
+
+\begin_layout Standard
+对于分区表，分发策略的更改递归应用于子分区。此操作将保留表的所有权和所有其他属性。例如，以下命令使用customer_id列作为分发列，重新分配所有Segmen
+t 的 SALES 表：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ALTER TABLE sales SET DISTRIBUTED BY（customer_id）;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+当您更改表的分布时，表数据将自动重新分发。将分配策略更改为随机分布不会导致重新分配数据。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ALTER TABLE sales SET DISTRIBUTED RANDOMLY;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+重新分配表数据
+\end_layout
+
+\begin_layout Standard
+要为具有随机分配策略的表重新分配表数据使用REORGANIZE = TRUE。例如，以下命令使用当前分发策略（包括随机分布）在所有Segment重新分配表数据。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ALTER TABLE sales SET WITH（REORGANIZE = TRUE）;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+更改表存储模型
+\end_layout
+
+\begin_layout Standard
+表存储，压缩和方向只能在创建时声明。 要更改存储模型，必须创建具有正确存储选项的表，将原始表数据加载到新表中，删除原始表，并使用原始表的名称重命名新表。
+ 您还必须重新授予任何表权限。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+CREATE TABLE sales2 (LIKE sales)  
+\end_layout
+
+\begin_layout Plain Layout
+
+WITH (appendonly=true, compresstype=lz4, orientation=column); 
+\end_layout
+
+\begin_layout Plain Layout
+
+INSERT INTO sales2 SELECT * FROM sales; 
+\end_layout
+
+\begin_layout Plain Layout
+
+DROP TABLE sales; 
+\end_layout
+
+\begin_layout Plain Layout
+
+ALTER TABLE sales2 RENAME TO sales; 
+\end_layout
+
+\begin_layout Plain Layout
+
+GRANT ALL PRIVILEGES ON sales TO admin; 
+\end_layout
+
+\begin_layout Plain Layout
+
+GRANT SELECT ON sales TO guest;
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -2777,17 +3049,6 @@ NULL表示列或字段中的未知数据。 在的数据文件中，您可以指
 
 \begin_layout Standard
 有两个保留字符有特殊的意义：
-\begin_inset listings
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Itemize

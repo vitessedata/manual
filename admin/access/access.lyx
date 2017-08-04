@@ -316,6 +316,25 @@ max_prepared_transactions=100
 
 \end_layout
 
+\begin_layout Section
+加密客户端/服务器连接
+\end_layout
+
+\begin_layout Standard
+启用客户端连接到数据库的SSL，以加密在客户端和数据库之间通过网络传递的数据。
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 数据库支持客户端和主服务器之间的SSL连接。 SSL连接阻止第三方窥探数据包，也可以防止中间人发生攻击。当客户端连接经过不安全的链接时，应使
+用SSL，并且必须在使用客户端证书身份验证时使用SSL。
+\end_layout
+
+\begin_layout Standard
+要启用SSL，需要在客户端和主服务器系统上安装OpenSSL。 DEEPGREEN数据库可以通过在master postgresql.conf中设置服务器配置参数
+ssl = on来启用SSL。当以SSL模式启动时，服务器将在主数据目录中查找文件server.key（服务器私钥）和server.crt（服务器证书）。在启用启用
+SSL的DEEPGREEN数据库系统启动之前，必须正确设置这些文件。
+\end_layout
+
 \begin_layout Chapter
 管理角色和权限
 \end_layout
@@ -345,6 +364,247 @@ DeepGreen 数据库使用角色管理数据库访问权限。角色的概念包�
 \begin_layout Standard
 为了引导数据库系统，一个新初始化的系统总是包含一个预定义的超级用户角色（也称为系统用户）。此角色的名称与初始化数据库系统的操作系统用户名称相同。通常这个角色命名
 为gpadmin。
+\end_layout
+
+\begin_layout Section
+角色和权限的安全最佳做法
+\end_layout
+
+\begin_layout Itemize
+保护gpadmin系统用户。 DeepGreen 需要一个UNIX用户标识来安装和初始化数据库系统。该系统用户在文档中安习惯称为gpadmin。该gpadmin
+用户是数据库中的默认数据库超级用户，以及安装的文件系统所有者及其底层数据文件的拥有者。此默认管理员帐户对数据库十分重要， 没有它系统无法运行，并且数据库无法限制
+此gpadmin用户标识的访问。请使用角色来管理具有特定用途的访问数据库的人员，只使用gpadmin帐户进行系统维护任务，如扩展和升级。
+\end_layout
+
+\begin_layout Itemize
+为了记录和审核目的，允许登录到Greenplum数据库的每个用户都应该被赋予自己的数据库角色。对于应用程序或Web服务，请考虑为每个应用程序或服务创建不同的角色
+。 
+\end_layout
+
+\begin_layout Itemize
+使用组来管理访问权限。查看角色会员资格。 
+\end_layout
+
+\begin_layout Itemize
+限制拥有SUPERUSER角色属性的用户。作为超级用户的角色绕过了数据库中的所有访问权限检查，以及资源排队。只有系统管理员才应该获得超级用户权限。
+\end_layout
+
+\begin_layout Section
+创建新角色（用户）
+\end_layout
+
+\begin_layout Standard
+用户级角色被认为是可以登录数据库并启动数据库会话的数据库角色。 因此，使用CREATE ROLE命令创建新的用户级角色时，必须指定LOGIN权限。
+ 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# CREATE ROLE jsmith WITH LOGIN;
+\end_layout
+
+\end_inset
+
+数据库角色可能有许多属性可以定义角色可以在数据库中执行哪些任务。 您可以在创建角色时，或以后使用ALTER ROLE命令来设置这些属性。例如，
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith WITH PASSWORD 'passwd123'; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE admin VALID UNTIL 'infinity'; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith LOGIN; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith RESOURCE QUEUE adhoc; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith DENY DAY 'Sunday';
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+角色还可以为许多服务器配置设置提供角色特定的默认值。 例如，要为角色设置默认模式搜索路径：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE admin SET search_path TO myschema, public;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+角色会员资格
+\end_layout
+
+\begin_layout Standard
+将用户组合在一起以简化对象特权的管理是非常方便的：这样，可以授予组中的整体权限或撤销权限。 在数据库中，可以通过创建代表组的角色，然后将组角色中的成员资格授予单
+个用户角色来完成。
+\end_layout
+
+\begin_layout Standard
+使用CREATE ROLE SQL命令创建一个新的组角色。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# CREATE ROLE admin CREATEROLE CREATEDB;
+\end_layout
+
+\end_inset
+
+一旦组角色存在，您可以使用GRANT和REVOKE命令添加和删除成员（用户角色）。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# GRANT admin TO john, sally; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# REVOKE admin FROM bob;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+对于管理对象权限，您将仅向组级角色授予适当权限。 成员用户角色继承组角色的对象权限。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# GRANT ALL ON TABLE mytable TO admin; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# GRANT ALL ON SCHEMA myschema TO admin; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# GRANT ALL ON DATABASE mydb TO admin;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+LOGIN，SUPERUSER，CREATEDB，CREATEROLE，CREATEEXTTABLE和RESOURCE QUEUE的角色属性从不作为数据库对象的
+普通权限继承。 用户成员必须实际将SET ROLE设置为具有这些属性之一的特定角色才能使用该属性。 在上面的例子中，我们给了CREATEDB和CREATEROL
+E给管理角色。 如果sally是admin的成员，她可以发出以下命令来承担父角色的角色属性：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> SET ROLE admin;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+模拟行和列级访问控制
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN不支持行级或列级访问限制，也没有标记安全性。 可以使用视图来模拟行级和列级访问，以限制所选列和/或行。 可以通过向表中添加额外的列来存储灵敏度
+信息，然后使用视图来控制基于此列的行级访问来模拟行级标签。 然后将视图而不是基表的权限授予角色。
+\end_layout
+
+\begin_layout Section
+加密数据
+\end_layout
+
+\begin_layout Standard
+DeepGreen 数据库包含一个名为pgcrypto的可选加密/解密函数包。 pgcrypto函数允许数据库管理员以加密形式存储某些数据列。
+ 这为敏感数据增加了一个额外的保护层，因为没有加密密钥的任何人都无法读取数据库中存储的数据，也不能直接从磁盘中读出非加密原文。
+\end_layout
+
+\begin_layout Section
+数据库中的密码
+\end_layout
+
+\begin_layout Standard
+在其默认配置中，DEEPGREEN 将登录用户密码的MD5哈希值保存在pg_authid系统目录中，而不是保存明文密码。 任何能够查看pg_authid表的人都
+可以看到哈希字符串，但没有密码。 这也可以确保将数据库转储到备份文件时，密码被隐藏。
+\end_layout
+
+\begin_layout Standard
+密码可以使用SHA-256散列算法而不是默认的MD5散列算法进行散列。 该算法产生一个以字符sha256为前缀的64字节十六进制字符串。
+\end_layout
+
+\begin_layout Standard
+要启用SHA-256散列，请将password_hash_algorithm配置参数从默认值md5更改为sha-256。 该参数可以在全局或会话级设置。
+ 要全局设置password_hash_algorithm，请在shell中以gpadmin用户身份执行这些命令：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpconfig -c password_hash_algorithm -v 'sha-256' 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -u
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+虽然SHA-256使用更强大的加密算法，并产生较长的散列字符串，但不能与MD5认证方法一起使用。 要使用SHA-256密码散列，必须在pg_hba.conf配置文
+件中将验证方法设置为password，以便将明文密码发送到Greenplum数据库。 因为明文密码通过网络发送，所以使用SHA-256时，使用SSL进行客户端连
+接是非常重要的。 另一方面，默认的md5身份验证方法在将密码发送到Greenplum数据库之前先将其密码两次，一次使用密码和角色名称，然后再次使用客户端和服务器
+之间共享的盐值，因此明文密码永远不会 在网络上发送。
 \end_layout
 
 \end_body
