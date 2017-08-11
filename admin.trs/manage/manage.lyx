@@ -1,0 +1,6582 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass ctex-book
+\begin_preamble
+% 如果没有这一句命令，XeTeX会出错，原因参见
+% http://bbs.ctex.org/viewthread.php?tid=60547
+\DeclareRobustCommand\nobreakspace{\leavevmode\nobreak\ }
+\end_preamble
+\options UTF8
+\use_default_options true
+\maintain_unincluded_children false
+\language chinese-simplified
+\language_package none
+\inputencoding utf8-plain
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format pdf4
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 0
+\use_package mhchem 1
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\listings_params "basicstyle={\ttfamily}"
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part
+管理 DEEPGREEN 集群
+\end_layout
+
+\begin_layout Standard
+在这个部分我们讲述DEEPGREEN系统管理员日常操作。
+\end_layout
+
+\begin_layout Chapter
+启动，停止数据库
+\end_layout
+
+\begin_layout Standard
+除非特别说明，本章中的命令都是由DEEPGREEN 用户（习惯上使用 gpadmin) 在MASTER上运行。这个用户应该 source greenplum_p
+ath.sh 并设定 MASTER_DATA_DIRECTORY 环境变量。
+\end_layout
+
+\begin_layout Section
+启动，重启, 改变系统设置， 和停止系统
+\end_layout
+
+\begin_layout Standard
+在Master上执行gpstart 或 gpstop 来启动，重启, 改变系统设置。 常见命令如下，
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Start Deepgreen database
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstart
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Stop then restart Deepgreen database
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -r
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Reload changes in postgresql.conf and pg_hba.conf
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -u
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Stop stystem
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Stop system in fast mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -M fast
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+以维修状态 (Maintainance Mode) 启动数据库
+\end_layout
+
+\begin_layout Standard
+有些管理操作， 比如修改MASTER的数据字典，需要启动并对MASTER进行操作。 这时只应该启动MASTER而不应该启动SEGMENT。这种状态称之为以维修状
+态启动。 启动后，管理员必须设置 gp_session_role 才可以连接数据库进行操作。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Start database in maintainance mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstart -m
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Connect to database in mantainance mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ PGOPTIONS='-c gp_session_role=utility' psql postgres
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Restart database in production mode
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -mr
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+访问数据库
+\end_layout
+
+\begin_layout Standard
+本章讲述客户端软件如何连接数据库和建立会话。
+\end_layout
+
+\begin_layout Section
+建立会话
+\end_layout
+
+\begin_layout Standard
+客户端应该总是和MASTER建立会话。DEEPGREEN SEGMENT不能和客户端连接。客户端需要设定以下参数，这些参数如果没有设定，将会从客户的环境变量中获
+取。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+连接参数
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="4">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+参数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+描述
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+环境变量
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+默认值
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Applicaton name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+连接应用名称
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGAPPNAME
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Database name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+连接的数据库名
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGDATABASE
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Host name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+DEEPGREEN Master hostname
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGHOST
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+localhost
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Port
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+DEEPGREEN Master 端口
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGPORT
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5432
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+User name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+数据库内的用户名 （role)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+$PGUSER
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+OS Username
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+支持的客户端程序
+\end_layout
+
+\begin_layout Itemize
+DEEPGREEN 支持使用 libpq 的程序，如数据库自带的客户端 psql。
+\end_layout
+
+\begin_layout Itemize
+DEEPGREEN 支持常见接口 JDBC， ODBC。 所有使用这些接口的程序都可以连接DEEPGREEN。
+\end_layout
+
+\begin_layout Itemize
+客户端可以自行实现 PostgreSQL协议，如纯 Javascript 的客户端
+\end_layout
+
+\begin_layout Section
+系统预装的客户端程序
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 预装如下常用客户端应用或管理程序。
+\end_layout
+
+\begin_layout Description
+createdb 创建新数据库
+\end_layout
+
+\begin_layout Description
+createlang 创建新的过程语言
+\end_layout
+
+\begin_layout Description
+createuser 创建新用户
+\end_layout
+
+\begin_layout Description
+dropdb 删除数据库
+\end_layout
+
+\begin_layout Description
+droplang 删除过程语言
+\end_layout
+
+\begin_layout Description
+dropuser 删除用户
+\end_layout
+
+\begin_layout Description
+psql 交互式终端
+\end_layout
+
+\begin_layout Description
+reindexdb 重建索引
+\end_layout
+
+\begin_layout Description
+vacuumdb 回收数据库存储空间，分析数据库统计信息
+\end_layout
+
+\begin_layout Standard
+所有这些程序都可以使用 -d, -h, -p, -U 或环境变量设定数据库名，host， 端口， 用户名这些连接参数。根据DEEPGREEN 连接设置，用户可能
+需要提供密码，或设置 ~/.pgpass文件。以 psql 为例，
+\end_layout
+
+\begin_layout Itemize
+连接数据库，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql -d gpdatabase -h master_host -p 5432 -U gpadmin
+\end_layout
+
+\end_inset
+
+ 如不指定选项值， 则使用环境变量。 比如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql pgdatabase
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+连接到数据库后，psql提供了一个提示，其中包含psql当前连接到的数据库的名称，后跟 =>（或=# 如果您是数据库超级用户）。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpdatabase=>
+\end_layout
+
+\end_inset
+
+之后就可以执行SQL语句。 SQL语句在psql中以；触发执行。
+\end_layout
+
+\begin_layout Section
+支持的 API
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 支持如下 API。 一般来说，DEEPGREEN 客户端协议与 PostgreSQL 一致。 对不同接口，客户端需要下载，安装驱动程序。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+客户端 API和驱动程序
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+API
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+驱动程序
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+下载地址
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ODBC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+psqlODBC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+https://odbc.postgresql.org/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+JDBC
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pgjdbc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+https://jdbc.postgresql.org/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Perl DBI
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pgperl
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+http://search.cpan.org/dist/DBD-Pg/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Python DBI
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pygresql
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+http://www.pygresql.org/
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+libpq C API
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+libpq
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+预装
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+常见问题及解决方法
+\end_layout
+
+\begin_layout Subsection
+No pg_hba.conf entry for host or user
+\end_layout
+
+\begin_layout Standard
+MASTER 必须正确设置 pg_hba.conf （位于MASTER 数据目录中）。
+\end_layout
+
+\begin_layout Subsection
+网络配置错误
+\end_layout
+
+\begin_layout Standard
+确认网络设定正确
+\end_layout
+
+\begin_layout Subsection
+Too many clients already
+\end_layout
+
+\begin_layout Standard
+MASTER缺省最多同时可接受250个连接。可以通过修改 postgresql.conf 来增大 max_connections。一般来说，如果增大MASTER的
+max_connections值，那么SEGMENT上这个值也应该相应增大。
+\end_layout
+
+\begin_layout Chapter
+DEEPGREEN 配置
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 的系统配置文件存在各个节点数据目录中。DEEPGREEN的配置参数分两种， local和MASTER的： 每个SEGMENT和MASTER都
+需要尊从 postgresql.conf 里的local 参数，而只有MASTER才读取postgresql.conf里的MASTER参数，并在查询执行时将参数传给
+每个SEGMENT。
+\end_layout
+
+\begin_layout Section
+设置local 参数
+\end_layout
+
+\begin_layout Standard
+管理员应该使用gpconfig命令设置local参数。参数需重启数据库才生效。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpconfig -c gp_vmem_protect_limit -v 8192
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Restart database to take effect.
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -r
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+设置master参数
+\end_layout
+
+\begin_layout Standard
+可以通过修改MASTER的postgresql.conf在系统级设置master参数的确实值。 使用编辑器编辑master的这个文件。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+If the changed parameter does not need restart
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -u
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+If server restart is required
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -r
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+也可以通过SQL命令在数据库，Role， 或连接级设置
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Set parameter at database level via ALTER DATABASE, for example,
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER DATABASE mydb SET search_path to myschema;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Set at ROLE level, for example
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE me SET search_path to myshcema;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Set at connection level
+\end_layout
+
+\begin_layout Plain Layout
+
+=# SET statement_mem to '200MB';
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Reset session level parameter
+\end_layout
+
+\begin_layout Plain Layout
+
+=# RESET statement_mem;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+显示参数设置
+\end_layout
+
+\begin_layout Standard
+SQL命令SHOW允许您查看当前服务器配置参数设置。 例如，要查看所有参数的设置：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql -c 'SHOW ALL;'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+SQL 的 SHOW 命令仅列出Master的设置。 要查看整个系统（主节点和所有段）中特定参数的值，请使用gpconfig实用程序。 例如：
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpconfig --show max_connections
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+系统高可用性
+\end_layout
+
+\begin_layout Section
+高可用性综述
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 提供几种可选的高可用功能以应对不同的失败情况。 通过不同的冗余设计来保证系统使用， 以及失败后在可预期的时间内修复。
+\end_layout
+
+\begin_layout Subsection
+硬件 RAID
+\end_layout
+
+\begin_layout Standard
+可以使用RAID来应对磁盘或SSD损坏。
+\end_layout
+
+\begin_layout Subsection
+SEGMENT 镜像
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 数据存在多个SEGMENT里。 使用SEGMENT镜像时，每个SEGMENT都有 primary 或 mirror 一对镜像。
+ 每对镜像运行在不同的机器上，存储完全相同的数据。 镜像可以在系统初始化时在gpinitsystem 或 gpexpand 时设置。
+\end_layout
+
+\begin_layout Standard
+每对镜像有一个复制进程把primary的数据变化拷贝到mirror.
+ 当primary失效时，复制进程也就失败。 这时mirror的进入 change tracking 状态 – 表示mirror在primary失败时记录所有的
+数据变化。 管理员应及时对primary进行修复。 当primary重新接入集群，管理员应启动修复过程，系统进入 resynchronization
+ 状态。 修复进程把mirror记录的数据变化同步到primary上，结束后系统重新回到正常的synchronized状态。
+\end_layout
+
+\begin_layout Standard
+如果mirror失效，同样导致复制进程失效。 系统也进入 change tracking 状态。直至mirror修复，进入resynchronization,
+ 成功后回到正常的synchronized状态。
+\end_layout
+
+\begin_layout Standard
+有几种不同的方式把每对镜像配置到不同的机器，在一个机器失败时，不同的方式会带来不同的数据倾斜。缺省的方式是 group mirroring， 即一个机器上所有的
+Segments全部镜像到同样另外一台机器上。另一种方式是 spread mirroring，也就是把一台机器上的Segments均匀分布到不同的机器上。
+ 在一个机器失败时，spread mirroring 能更好的平均负载。 但Spread mirroring只能在机器多余每台机器上的Segments时才能采用
+。
+\end_layout
+
+\begin_layout Subsection
+Master 镜像
+\end_layout
+
+\begin_layout Standard
+高可用的系统需要配置Master镜像，primary和standby。 Master primary失败时，管理员可以使用 gpactivatestandby
+ 启动standby。网络管理可以设置虚拟IP地址，当primary失败时，把虚拟地址转给standby。Master 镜像采用 WAL（Write
+ Ahead Log） 复制。因为master并不存有用户数据，master mirror 只复制系统元数据。
+\end_layout
+
+\begin_layout Subsection
+双集群
+\end_layout
+
+\begin_layout Standard
+可以通过维护两个存储相同数据的数据库集群来提供额外的冗余级别。
+\end_layout
+
+\begin_layout Standard
+在双重集群中保持数据同步的两种方法是“双ETL”和“备份/恢复”。
+\end_layout
+
+\begin_layout Standard
+双ETL提供了与主集群相同数据的完整备用集群。 ETL（提取，转换和加载）是指将输入数据清理，转换，验证和加载到数据仓库中的过程。使用双ETL，此过程并行执行两
+次，每次在每个集群上执行一次，并且每次都进行验证。它还允许在两个群集上查询数据，使查询吞吐量翻番。应用程序可以利用这两个集群，并确保ETL在两个集群上都能成功和
+验证。
+\end_layout
+
+\begin_layout Standard
+要使用备份/还原方法维护双集群，请创建主集群的备份，然后在辅集群上进行备份。与双ETL策略相比，该方法需要较长的时间来同步辅助集群上的数据，但需要开发更少的应用
+程序。备份第二个集群是在数据修改和ETL都不频繁的情况下的理想选择。
+\end_layout
+
+\begin_layout Subsection
+失效检测与系统修复
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 的Postgres进程生成一个叫 ftsprobe 的子进程来检测失效。ftsprobe 定时扫描整个集群来检测失败的节点。
+ 管理员可以指定扫描的频率。ftsprobe 不能连接到一个segment的时候，将这个segment 在系统表里的状态置为 down。 这个segment
+ 的状态会一直是 down，直至管理员修复。
+\end_layout
+
+\begin_layout Standard
+有镜像时，当primary失效时，系统会自动启用mirror.
+ 系统保持功能正常。 管理员应尽快使用 gprecoverseg 对失效Segment进行修复。 可以在系统工作时对segment进行修复。
+\end_layout
+
+\begin_layout Standard
+无镜像时，系统会自行停止。 管理员需手动对Segment进行修复，方能重新启动系统。
+\end_layout
+
+\begin_layout Subsection
+Backup/Restore
+\end_layout
+
+\begin_layout Standard
+定时使用 gpcrondump 来 backup数据库可保护数据。分离的，异地的，安全存储是数据安全的一个重要的设计考虑。DEEPGREEN 支持对
+ append-optimized 表进行增量backup。 对于heap表，只支持全表的backup。详细情况请看后面专门论述。
+\end_layout
+
+\begin_layout Section
+设置镜像
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN系统的镜像既可以在初始化(gpinitsystem)时配置，也可以在现有的系统上重 新配置(gpaddmirrors和gpinitstandb
+y)。本节讲述对于初始化时没有配置Mirror的系统 如何添加Mirror。 
+\end_layout
+
+\begin_layout Subsection
+设置Segment Mirror
+\end_layout
+
+\begin_layout Standard
+Segment Mirror允许在Primary失效时切换到Mirror。DEEPGREEN 缺省设置是在primary同一组机器上配置Mirror。还可以选择
+与primary完全不同的一组机器来配置Mirror Segment。
+\end_layout
+
+\begin_layout Standard
+在现有系统同一组机器中添加Mirror需要如下操作，
+\end_layout
+
+\begin_layout Enumerate
+在机器上分配用以存储Mirror的数据存储空间 
+\end_layout
+
+\begin_layout Enumerate
+必须确保所有Segment主机之间已经建立了互信。 
+\end_layout
+
+\begin_layout Enumerate
+运行gpaddmirrors命令添加系统的Mirror。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpaddmirrors -p 10000
+\end_layout
+
+\end_inset
+
+-p参数加到Primary Segment Instance端口数字之上,作为Mirror Instance端口.
+\end_layout
+
+\begin_layout Standard
+在现有系统不同的一组机器上添加Mirror需要
+\end_layout
+
+\begin_layout Enumerate
+确保DEEPGREEN软件已经在所有主机上安装
+\end_layout
+
+\begin_layout Enumerate
+为所有Segment Mirror分配数据存储空间。 
+\end_layout
+
+\begin_layout Enumerate
+必须确保所有Segment主机之间已经建立了互信。 
+\end_layout
+
+\begin_layout Enumerate
+创建配置文件，该文件包含所有机器host， port， 数据目录。可以使用
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpaddmirrors -o configfile
+\end_layout
+
+\end_inset
+
+来创建一个配置文件模版。 配置文件格式为，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder=[filespace1_fsname          
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+               [:filespace2_fsname:...]    
+\backslash
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+mirror[content]=content:address:port       
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+:mir_replication_port                      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+:pri_replication_port                      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+:fselocation[:fselocation:...]
+\end_layout
+
+\end_inset
+
+例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder= 
+\end_layout
+
+\begin_layout Plain Layout
+
+mirror0=0:sdw1-1:52001:53001:54001:/gpdata/mir1/gp0 
+\end_layout
+
+\begin_layout Plain Layout
+
+mirror1=1:sdw1-2:52002:53002:54002:/gpdata/mir1/gp1 
+\end_layout
+
+\begin_layout Plain Layout
+
+mirror2=2:sdw2-1:52001:53001:54001:/gpdata/mir1/gp2 
+\end_layout
+
+\begin_layout Plain Layout
+
+mirror3=3:sdw2-2:52002:53002:54002:/gpdata/mir1/gp3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpaddmirrors -i mirror_config_file 
+\end_layout
+
+\end_inset
+
+来添加镜像
+\end_layout
+
+\begin_layout Subsection
+配置Master镜像
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN Master 的Standby既可以在初始化(gpinitsystem)时配置，也可以在现有的系 统上配置(gpinitstandby)。
+\end_layout
+
+\begin_layout Standard
+为已有系统增加Standby需要 
+\end_layout
+
+\begin_layout Enumerate
+确保Standby主机已经正确的安装配置DEEPGREEN软件，创建gpadmin用户。
+\end_layout
+
+\begin_layout Enumerate
+在当前Master主机上运行gpinitstandby命令
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s smdw 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+管理员可以使用 pg_stat_replication view 来查看镜像状态。 例如，如下查看walsender复制同步程序的状态。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql dbname -c 'SELECT procpid, state 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  FROM pg_stat_replication;' 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+检测失效Segment
+\end_layout
+
+\begin_layout Standard
+如果开启了Mirror，在Primary失败时DEEPGREEN将自动切换到Mirror。通常Segment失败对于用户来说影响不大。如果在失败发生时，一个事务
+正在进行，该事务会被回滚，然后会在Segment自动重启后重试该事务。 这种情况管理员应设置监控，报警系统及时发现。
+\end_layout
+
+\begin_layout Standard
+如果由于某个Segment的失败导致了整个系统变得不可运行(如没配置Mirror， 或过多的机器失败），用户在尝试连接到数据库时会得到错误。客户端程序的错误信息
+可能会给出提示。例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ERROR: All segment databases are unavailable 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+FTSprobe 通过轮询监控各个Segment状态。 管理员可以通过 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gp_segment_configuration
+\end_layout
+
+\end_inset
+
+ 来查询Segment状态。 可以看到Segment是 up／down， "change tracking", "resync", 或 "in-sync"。
+ 失败的Segment可以用gprecoverseg来修复。 缺省gprecoverseg采用增量修复。 gprecoverseg 把segment状态设置为r
+esync然后复制变化的数据。 如果增量修复不成功，可以使用 -F 选项强制全Segment修复。
+\end_layout
+
+\begin_layout Standard
+下面一系列参数可以控制 FTS probe的行为，
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_threadcount 用于检测的线程数，缺省16.
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_interval 轮询间隔。缺省60， 最大值3600.
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_timeout 检测超时。缺省20， 最大值3600.
+\end_layout
+
+\begin_layout Description
+gp_fts_probe_retries 检测重试次数。缺省5.
+\end_layout
+
+\begin_layout Description
+gp_log_fts 日志控制。 可取值 "off", "terse", "verbose", or "debug"。 缺省为 terse。
+\end_layout
+
+\begin_layout Description
+gp_segment_connect_timeout 允许镜像回应的最长时间，缺省180.
+\end_layout
+
+\begin_layout Standard
+除FTSprobe外，如果primary不能将数据复制到镜像，primary数据排队时间超过gp_segment_connect_timeout
+ 秒，则视为镜像失效。 镜像会被设为down，primary进入change tracking状态。
+\end_layout
+
+\begin_layout Subsection
+使用 gpstate 查看segment 状态
+\end_layout
+
+\begin_layout Enumerate
+在Master使用-e参数执行gpstate命令。这将显示Segments出错状态。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -e 
+\end_layout
+
+\end_inset
+
+处于Change Tracking状态表明对应的Mirror已经失败。 如果某个Instance不在其 preferred role，意味着其当前的运行状态与系
+统初始 化时的设置不同。这表示系统处于非平衡状态，一个Segment主机可能消耗更高的系统资源。
+\end_layout
+
+\begin_layout Enumerate
+要获得失败Instance的详细信息，可查看系统日志表。例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql -c "SELECT * FROM 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  gp_segment_configuration WHERE status='d';" 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+对于失败的segment，其主机、端口、初始角色和数据目录等信息有助于确定segment所在的主机和位置，有助于诊断故障。
+\end_layout
+
+\begin_layout Enumerate
+查看Mirror segment的信息，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -m 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+从日志查看segment信息
+\end_layout
+
+\begin_layout Standard
+日志文件对于确定出错的原因可以提供更多的信息。Master和每个Segment的日志文件都位于数据目录下的pg_log目录里。Master的日志文件里包含较多的
+信息，一般应该首先检查Master日志文件。检查日志可以使用gplogfilter命令。如果需要检查Segment的日志，可以通过gpssh运行gplogfil
+ter。 例如，
+\end_layout
+
+\begin_layout Enumerate
+检查master日志里WARNING、ERROR、FATAL或PANIC级别的信息，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gplogfilter -t 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+使用gpssh检查Segment日志文件WARNING、ERROR、FATAL或 PANIC级别的信息，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpssh -f seg_hosts_file -e 'source              
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  /usr/local/greenplum-db/greenplum_path.sh;      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  gplogfilter -t                                  
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  /data1/primary/*/pg_log/gpdb*.log' > seglog.out
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+修复Segment
+\end_layout
+
+\begin_layout Standard
+当Master无法连接到Segment后会在系统表中将该Segment标记为down。 如何修复这个Segment取决于Segment失败的原因和是否有Mirr
+or。Segment变得不可用有多种因素，例如，
+\end_layout
+
+\begin_layout Enumerate
+主机无法访问(网络硬件故障)。 
+\end_layout
+
+\begin_layout Enumerate
+Segment 未运行(无postgres进程)。 
+\end_layout
+
+\begin_layout Enumerate
+Segment 的数据目录损坏或丢失(数据无法访问、文件系统损坏、磁盘故障)。 
+\end_layout
+
+\begin_layout Standard
+对于这些情况的失败，下图展示了解决步骤，
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Segment 修复流程
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/recovermatrix.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Segment主机失败
+\end_layout
+
+\begin_layout Standard
+若整个Segment主机失败，将会导致多个Segment失败，该主机上的所有Primary 和Mirror都会被标记为失败。如果系统没有配置 Mirror，系统
+都将会自动停止运行。
+\end_layout
+
+\begin_layout Subsubsection
+系统有Mirror
+\end_layout
+
+\begin_layout Standard
+如果系统有Mirror， 恢复步骤为
+\end_layout
+
+\begin_layout Enumerate
+确保从Master主机可以连该Segment主机。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ ping failed_seg_host_address 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+找到Master无法连接到Segment主机的故障并排除。
+\end_layout
+
+\begin_layout Enumerate
+主机正常启动之后，确认连接正常。从Master主机执行gprecoverseg 命令恢复失败的segment。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+gprecoverseg 会唤醒失败的segment并开始寻找需要同步的文件。 这个过程需要一些时间。在此过程中，数据库会暂停写操作。
+\end_layout
+
+\begin_layout Enumerate
+在gprecoverseg完成之后，系统变为Resynchronizing状态，并开始拷贝变化的文件。此进程是在后台运行，期间系统处于可用状态。
+ 
+\end_layout
+
+\begin_layout Enumerate
+当同步完成后，系统将重新变为Synchronized状态。可运行gpstate命令确认状态。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -m 
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Subsubsection
+把Segment恢复成preferred role
+\end_layout
+
+\begin_layout Standard
+当Primary失效后，Mirror被激活并变为Primary。在执行gprecoverseg之后，当前作为Primary仍保持primary状态。原始的Pri
+mary 并没有恢复到系统初始化时的角色。这会导致 系统处于非平衡状态优点Segment主机可能消耗更高的系统资源。执行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -e 
+\end_layout
+
+\end_inset
+
+可以显示各个segment状态。 可使用如下步骤重新平衡系统。要恢复到平衡状态，所有的Segment都必须启动且完全处于已同步状态。在重新平衡期间，数据库会话会
+保持连接但正在运行的查询会取消。
+\end_layout
+
+\begin_layout Enumerate
+运行gpstate -m确认所有的Mirror处于已同步状态。如果任何的Mirror处(Resynchronizing状态，请等待知道它们完成。
+ 
+\end_layout
+
+\begin_layout Enumerate
+运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg -r 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+完成后，运行gpstate –e确认所有Instance已经恢复到preferred role。
+\end_layout
+
+\begin_layout Subsection
+双失败的恢复
+\end_layout
+
+\begin_layout Standard
+双失败指的是Primary与对应的Mirror一起失败。这种情况会在两个不同的Segment主机同时失败时发生。在出现双失效时，集群会停止服务。想要从双失效恢复
+，执行如下步骤
+\end_layout
+
+\begin_layout Enumerate
+重启集群
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstop -r 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在系统重启之后，运行gprecoverseg。
+\end_layout
+
+\begin_layout Enumerate
+gprecoverseg完成后，使用gpstate -m 确认Mirror的状态.
+\end_layout
+
+\begin_layout Enumerate
+如果仍然有Segment处于change tracking状态，运行 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg -F 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+如果仍不能成功，重新建立集群并从备份恢复数据。
+\end_layout
+
+\begin_layout Standard
+完全拷贝覆 盖的恢复 $ gprecoverseg -F 注意：使用-F参数会将失败的Instance数据完全清除并从配对的Instance完全复
+ 制所有数据。出现双失败的情况时上述步骤不确保一定可以恢复回来，如果一 致性数据遭到破坏或者事务ID发生紊乱，在尝试恢复之前还需要其他修复工作。
+\end_layout
+
+\begin_layout Subsection
+恢复无Mirror的系统 
+\end_layout
+
+\begin_layout Enumerate
+首先确认从Master主机可以连通Segment主机。
+\end_layout
+
+\begin_layout Enumerate
+找到Segment主机的故障，并排除。
+\end_layout
+
+\begin_layout Enumerate
+在Segment主机启动之后，确认可以连接。然后尝试重启集群。 
+\end_layout
+
+\begin_layout Enumerate
+运行gpstate确认所有Segment已经启动。
+\end_layout
+
+\begin_layout Subsection
+如果Segment Host无法恢复
+\end_layout
+
+\begin_layout Standard
+如果有Mirror，可以使用gprecoverseg从Mirror拷贝恢复到新的主机上。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gprecoverseg -i recover_config_file 
+\end_layout
+
+\end_inset
+
+recover_config_file文件格式为，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder=
+\end_layout
+
+\begin_layout Plain Layout
+
+[filespace1_name[:filespace2_name:...]
+\end_layout
+
+\begin_layout Plain Layout
+
+failed_host_address: port:fselocation d
+\end_layout
+
+\begin_layout Plain Layout
+
+[recovery_host_address:port:replication_port:
+\end_layout
+
+\begin_layout Plain Layout
+
+fselocation [:fselocation:...]]
+\end_layout
+
+\end_inset
+
+例如如要恢复到一个不同的主机（假设没有除了缺省表空间pg_default之外的其他表空间） 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+filespaceOrder=sdw5-2:50002:/gpdata/gpseg2 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw9-2:50002:53002:/gpdata/gpseg2 
+\end_layout
+
+\end_inset
+
+系统日志表gp_segment_configuration 和 pg_filespace_entry可以帮助确定Segment的配置，并依此做恢复方案。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT dbid, content, hostname, address, port,     
+\end_layout
+
+\begin_layout Plain Layout
+
+replication_port, fselocation as datadir     
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM gp_segment_configuration, pg_filespace_entry     
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE dbid=fsedbid     
+\end_layout
+
+\begin_layout Plain Layout
+
+ORDER BY dbid;
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Section
+修复Master
+\end_layout
+
+\begin_layout Standard
+在Master失效后 WAL同步程序会停止。可以用gpactivatestandby激活Standby。步骤如下，
+\end_layout
+
+\begin_layout Enumerate
+确认系统必须配置有Standby。
+\end_layout
+
+\begin_layout Enumerate
+在Standby主机上运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpactivatestandby -d /data/master/gpseg-1 
+\end_layout
+
+\end_inset
+
+一旦激活了Standby，它就成为集群新的Master。
+\end_layout
+
+\begin_layout Enumerate
+在激活之后，运行gpstate命令检查状态
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -f 
+\end_layout
+
+\end_inset
+
+新激活的Master应处于Active状态。 如果又还配置了一个新的 Standby主机，它应该在Passive状态。 如果没有配置新的standby，那么Ma
+ster standby应为Not Configured状态
+\end_layout
+
+\begin_layout Enumerate
+切换之后在新的Master主机上运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql dbname -c 'ANALYZE;' 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+作为可选项，可以配置一个新的Standby。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s new_standby_master_hostname 
+\end_layout
+
+\end_inset
+
+在当前活动的Master主机上运行这个 命令。例如： $ gpinitstandby -s new_standby_master_hostname
+\end_layout
+
+\begin_layout Subsection
+恢复 Master镜像
+\end_layout
+
+\begin_layout Standard
+在激活Master Standby之后，Standby成为新的Primary Master。它与原有的Primary Master功能和可靠性等价。管理员可以用
+gpinitstandby命令配置一个新的Standby。
+\end_layout
+
+\begin_layout Standard
+作为可选项，管理员可以将Master与Standby恢复到最原始的主机上。这个过程实质上是将Master与Standby交换角色。
+\end_layout
+
+\begin_layout Enumerate
+确保原始主机处于可靠的运行状态。那些导致失败的因素已经被彻底解决。 
+\end_layout
+
+\begin_layout Enumerate
+在原始主机上，mv或rm Master数据目录，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ mv /data/master/gpseg-1 /data/master/backup_gpseg-1 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在原始主机上建立standby
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s mdw 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+确认Standby状态为 In Sync。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpstate -f 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在当前的Master主机(原始角色为Standby)上停止Master进程
+\end_layout
+
+\begin_layout Enumerate
+在原始Master主机上(当前为Standby)运行gpactivatestandby命令。
+\end_layout
+
+\begin_layout Enumerate
+运行gpstate命令检查状态，现在原始Master状态应为Active，而Standby状态应为Not Configured。
+\end_layout
+
+\begin_layout Enumerate
+在原来的Standby上，mv或rm Master数据目录，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ mv /data/master/gpseg-1 /data/master/backup_gpseg-1 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+激活原始standby。 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpinitstandby -s smdw 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+Backup/Restore
+\end_layout
+
+\begin_layout Standard
+本章讲述DEEPGREEN的数据备份与恢复。定期备份数据库，在系统失败或者数据损坏时可以使用备份来恢复重建。另外还可以使用备份来把一个集群迁移到另外一个集群。
+\end_layout
+
+\begin_layout Section
+概述
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN提供了并行和非并行的Backup/Restore。 显然，并行方式没有瓶颈，扩展性好。
+\end_layout
+
+\begin_layout Subsection
+并行方法
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN提供了一个并行备份命令gpcrondump。该命令同时备份Master和所有的Segment。该命令缺省设置在 db_dumps目录里创建备份
+文件。 在Master上，该命令创建的数个备份文件包含DDL语句和系统表等元数据。在Segment上，只创建一个数据文件。(比如gp_segment_confi
+guration)。所有一次的备份文件通过一个14位数字的时间戳来识别。 gprestore 可以并行从备份文件中恢复数据库。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+并行备份
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gp_dump.jpg
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+并行restore
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gp_restore.jpg
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+非并行方法
+\end_layout
+
+\begin_layout Standard
+用户仍然可以使用常规的PostgreSQL备份命令pg_dump和pg_dumpall。PostgreSQL的 备份工具将在Master主机上创建一个大的备份文
+件，包含所有SEGMENT的数据。这样的做法比并行方法慢很多。很多时候，Master主机上没有足够的磁盘空间来存储数据库的全部数据。pg_restore
+ 可以恢复pg_dump和pg_dumpall产生的数据。 注意这个方法建立的表丢掉了原来表的分布信息。 DEEPGREEN会创建一个缺省的分布。
+ 这可能不是最优的分布。
+\end_layout
+
+\begin_layout Standard
+另外一个有用的非并行从数据库导出数据的命令为SQL命令COPY TO。它允许将一张表的全部或者一部分导出，以文本文件的方式存储在Master主机。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+非并行方法 Backup/Restore
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/nonpar_restore.jpg
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Backup/Restore 操作概述
+\end_layout
+
+\begin_layout Standard
+数据库备份和还原实用程序支持备份文件的各种位置：
+\end_layout
+
+\begin_layout Itemize
+使用gpcrondump实用程序，备份文件可能会保存在默认位置，即Master和Segment的db_dumps子目录中，也可以保存到使用gpcrondump
+ -u选项指定的其他目录中。 
+\end_layout
+
+\begin_layout Itemize
+备份文件可以通过命名管道保存到任何网络可访问的位置。 
+\end_layout
+
+\begin_layout Itemize
+保存到默认位置的备份文件可能会移动到网络上的归档服务器。
+\end_layout
+
+\begin_layout Standard
+您可以创建包含所选数据库对象的转储：
+\end_layout
+
+\begin_layout Itemize
+您可以备份整个数据库， 或Schema， 或用一个文件指定备份的表。 
+\end_layout
+
+\begin_layout Itemize
+您可以指定从备份中排除的Schema，或用一个文件指定不备份的表。
+\end_layout
+
+\begin_layout Itemize
+除了数据库对象，gpcrondump还可以备份配置文件pg_hba.conf，pg_ident.conf和postgresql.conf以及全局数据库对象，如角色和表
+空间。
+\end_layout
+
+\begin_layout Standard
+您可以创建增量备份：
+\end_layout
+
+\begin_layout Itemize
+增量备份仅能在AO表上使用。 
+\end_layout
+
+\begin_layout Itemize
+对于分区化优化表，仅备份已更改的附加优化/面向列的表分区。 
+\end_layout
+
+\begin_layout Itemize
+增量备份包括堆表中全部数据。 
+\end_layout
+
+\begin_layout Itemize
+使用gpcrondump --incremental标志来指定增量备份。 
+\end_layout
+
+\begin_layout Itemize
+恢复增量备份需要完全备份和所有后续增量备份。
+\end_layout
+
+\begin_layout Standard
+gpdbrestore实用程序提供了许多选项：
+\end_layout
+
+\begin_layout Itemize
+默认情况下，gpdbrestore将数据恢复到同一个创建备份的数据库。 
+\end_layout
+
+\begin_layout Itemize
+--redirect 允许您将备份还原到其他数据库。 
+\end_layout
+
+\begin_layout Itemize
+恢复的数据库可以被删除并重新创建，但默认是还原到现有的数据库。 
+\end_layout
+
+\begin_layout Itemize
+可以通过在命令行选择恢复的表。 
+\end_layout
+
+\begin_layout Itemize
+您可以从归档服务器的备份文件还原数据库。
+\end_layout
+
+\begin_layout Section
+使用 gpcrondump
+\end_layout
+
+\begin_layout Standard
+gpcrondump可以备份数据库，数据和的对象，比如数据库角色和服务器配置等。 gpcrondump生成SQL文件，运行这些SQL就可以恢复数据库。MASTE
+R上的SQL用来恢复元数据，SEGMENT上的备份文件用来恢复数据
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+外部表只备份DDL，并不备份数据
+\end_layout
+
+\end_inset
+
+。还可以使用 -g 选择把集群配置文件也加入备份。
+\end_layout
+
+\begin_layout Standard
+gpcrondump只有一个必须的命令行选项，-x 数据库名。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x mydb
+\end_layout
+
+\end_inset
+
+缺省会在 db_dumps／YYYYMMDD 目录中产生全备份。可以使用-u选项指定备份目标目录。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump mydb -u /backups
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+gpcrondump实用程序在指定的目录中创建db_dumps子目录。 如果每个主机有多个Primary Segment，则主机上的所有Segment
+ 将其备份文件写入同一目录。 这样可以将备份整合到单个目录或存储设备。
+\end_layout
+
+\begin_layout Standard
+在db_dumps目录中，备份将以“YYYYMMDD”格式保存到目录中，例如：dat_directory / db_dumps / 20151012，用于在20
+15年10月12日创建的备份。目录中的备份文件名包含备份的完整时间戳，格式为 YYYYMMDDHHMMSS，例如gp_dump_0_2_201510121959
+16.gz。 gpdbrestore命令默认使用最新的备份，但您可以指定要还原的早期备份。
+\end_layout
+
+\begin_layout Standard
+如果包含-g选项，gpcrondump将配置文件与备份保存在一起。这些配置文件被转储到Master 或Segment 目录中的db_dumps
+ / YYYYMMDD / config_files_timestamp.tar。 
+\end_layout
+
+\begin_layout Subsection
+gpcrondump的下列选项可以指定备份的表
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Only backup a table.
+  -t can be specified many times
+\end_layout
+
+\begin_layout Plain Layout
+
+-t schema.tablename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Use a file to list tables to backup
+\end_layout
+
+\begin_layout Plain Layout
+
+--table-file=filename  
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude table.
+  -T can be specified many times.
+\end_layout
+
+\begin_layout Plain Layout
+
+-T schema.tablename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude tables in a file
+\end_layout
+
+\begin_layout Plain Layout
+
+--exclude-table-file=filename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Include only schema
+\end_layout
+
+\begin_layout Plain Layout
+
+-s schema
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+A file to list schemas
+\end_layout
+
+\begin_layout Plain Layout
+
+--schema-file=filename
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude schema
+\end_layout
+
+\begin_layout Plain Layout
+
+-S schema
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude a list of schemas in a file
+\end_layout
+
+\begin_layout Plain Layout
+
+--exclude-schema-file=filename
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+增量备份
+\end_layout
+
+\begin_layout Standard
+gpcrondump可以用--incremental选项对append optimized表或分区表进行增量备份。如果在上一次完全备份或增量备份后，在AO表上执
+行了以下操作之一，则增量备份只会备份数据变化：
+\end_layout
+
+\begin_layout Itemize
+ALTER TABLE
+\end_layout
+
+\begin_layout Itemize
+DELETE
+\end_layout
+
+\begin_layout Itemize
+INSERT
+\end_layout
+
+\begin_layout Itemize
+TRUNCATE
+\end_layout
+
+\begin_layout Itemize
+UPDATE 
+\end_layout
+
+\begin_layout Itemize
+DROP然后重新创建表
+\end_layout
+
+\begin_layout Standard
+对于分区化优化表，仅备份已更改的分区。一个全备份和之后的一系列增量备份形成一个备份集合，可以恢复数据库。 如果集群的SEGMENT配置发生了变化，那么不能使用增
+量备份，必须做全备份。 
+\end_layout
+
+\begin_layout Standard
+增量备份例子如下，首先需要做全备份，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x mytest -u /backupdir  
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+之后可以做增量备份，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x mytest -u /backupdir --incremental 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+指定-u选项时，将在每个数据库主机的/ backupdir目录中创建备份。文件名包括以下时间戳键。例如，
+\end_layout
+
+\begin_layout Itemize
+20160514054532（完全备份） 
+\end_layout
+
+\begin_layout Itemize
+20160714095512 
+\end_layout
+
+\begin_layout Itemize
+20160914081205 
+\end_layout
+
+\begin_layout Itemize
+20161114064330（完全备份） 
+\end_layout
+
+\begin_layout Itemize
+20170114051246 
+\end_layout
+
+\begin_layout Standard
+要创建新的增量备份，您需要最新的增量备份20170114051246和上述完全备份20161114064330.
+ 另外，为备份集一部分的，任何增量备份必须指定相同的-u选项。
+\end_layout
+
+\begin_layout Standard
+要使用增量备份恢复数据库20160914081205，您需要增量备份20160914081205和20160714095512，并且完全备份2016051405
+4532。
+\end_layout
+
+\begin_layout Standard
+要使用增量备份20170114051246恢复mytest数据库，您只需要增量备份和完全备份即可实现.111124064330.
+\end_layout
+
+\begin_layout Standard
+restore命令将与此命令类似。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpdbrestore -t 20170114051246 -u /backupdir
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Backup 进程和锁
+\end_layout
+
+\begin_layout Standard
+在备份期间，gpcrondump锁定pg_class系统表和备份的表。使用EXCLUSIVE锁锁定pg_class表可确保在gpcrondump锁定要使用ACC
+ESS SHARE锁备份的表之前，不会添加，删除或更改任何表。
+\end_layout
+
+\begin_layout Standard
+下面的步骤描述了gpcrondump过程，包括在锁之前发生的情况，以及锁定后，以及锁被删除。如果指定了多个数据库，则对每个数据库依次执行此过程。
+\end_layout
+
+\begin_layout Itemize
+gpcrondump解析命令行参数，并验证是否正确指定了选项和参数。 如果
+\end_layout
+
+\begin_layout Itemize
+指定了以下任何过滤器选项，gpcrondump确定要备份的表的集合。否则，所有表都包含在备份中。 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+-s schema_name - 包含由指定模式限定的所有表。 
+\end_layout
+
+\begin_layout Itemize
+-S schema_name - 排除指定模式限定的所有表。 
+\end_layout
+
+\begin_layout Itemize
+--schema-file = filename - 包含由文件名中列出的Schema的表。
+\end_layout
+
+\begin_layout Itemize
+--exclude-schema-file = filename - 排除由文件名中列出的Schema的所有表。 
+\end_layout
+
+\begin_layout Itemize
+-t schema.table_name - 指定的表。 
+\end_layout
+
+\begin_layout Itemize
+-T schema.table_name - 排除指定的表。 
+\end_layout
+
+\begin_layout Itemize
+--table-file = filename - 文件名中指定的表。 
+\end_layout
+
+\begin_layout Itemize
+--exclude-table-file = filename - 文件名中指定的表之外的所有表。 
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+gpcrondump验证备份目标： 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+验证数据库是否存在。 
+\end_layout
+
+\begin_layout Itemize
+验证指定表或模式是否存在。 
+\end_layout
+
+\begin_layout Itemize
+验证每个Primary Segment是否已启动。 
+\end_layout
+
+\begin_layout Itemize
+验证备份目录是否存在，并且可以为主节点和每个节段写入。 
+\end_layout
+
+\begin_layout Itemize
+验证足够的磁盘空间可用于备份每个Segment。请注意，如果多个Segment备份到同一个磁盘卷，则此磁盘空间检查无法确保所有Segment都有可用空间。
+ 
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+在目录表pg_class上放置一个EXCLUSIVE锁。锁仅允许在表上进行并发读取操作。当锁定在目录表上时，不能在数据库中创建，更改或删除诸如表，索引和视图之类
+的关系。
+\end_layout
+
+\begin_layout Itemize
+gpcrondump使用ACCESS SHARE锁定要备份的表。 
+\end_layout
+
+\begin_layout Itemize
+创建和分派线程以执行数据库备份。 
+\end_layout
+
+\begin_layout Itemize
+当线程在所有必需的表上获取了ACCESS SHARED锁时，将创建dump_dir / gp_lockfile_timestamp锁定文件，并在备份表时，发送g
+pcrondump以释放pg_class目录表上的EXCLUSIVE锁。 
+\end_layout
+
+\begin_layout Itemize
+gpcrondump检查每个Primary Segment的状态文件是否有任何错误报告。如果备份失败，并指定了-r标志，则备份将回滚。 
+\end_layout
+
+\begin_layout Itemize
+目标表上的ACCESS SHARE锁定被释放。 
+\end_layout
+
+\begin_layout Itemize
+如果备份成功，并且使用-R选项指定了备份后脚本，gpcrondump将立即运行该脚本。 
+\end_layout
+
+\begin_layout Itemize
+gpcrondump报告备份状态，配置后发送电子邮件，并将备份状态保存在数据库中的public.gpcrondump_history表中。
+\end_layout
+
+\begin_layout Subsection
+使用Named pipe
+\end_layout
+
+\begin_layout Standard
+gpcrondump 和 gpdbrestore可以使用 named pipes。 当SEGMENT主机没有足够的磁盘空间时，可以使named
+ pipes之间备份到网络存储。
+\end_layout
+
+\begin_layout Enumerate
+运行 gpcrondump -K timestamp --list-backup-files.
+ 这会创建两个文本文件，每行是一个备份文件名， 例如
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gp_dump_20150519160000_pipes  
+\end_layout
+
+\begin_layout Plain Layout
+
+gp_dump_20150519160000_regular_files
+\end_layout
+
+\end_inset
+
+这些文件名会被用来创建named pipes。
+\end_layout
+
+\begin_layout Enumerate
+使用这个文件创建named pipes
+\end_layout
+
+\begin_layout Enumerate
+使用gpcrondump把备份写入这些named pipes
+\end_layout
+
+\begin_layout Enumerate
+使用gpdbrestore从这些named pipes中恢复数据库
+\end_layout
+
+\begin_layout Subsubsection
+例子
+\end_layout
+
+\begin_layout Standard
+下面例子使用named pipes和 netcat (nc)命令，将备份通过named pipes到TCP端口输出。远程进程可以从TCP接收备份文件。
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpcrondump -x testdb -K 20150519160000 
+\end_layout
+
+\begin_layout Plain Layout
+
+  --list-backup-files -u /backups 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ ls -lR /backups 
+\end_layout
+
+\begin_layout Plain Layout
+
+/backups: total 4 
+\end_layout
+
+\begin_layout Plain Layout
+
+drwxrwxr-x 3 gpadmin gpadmin 4096 May 19 21:49 db_dumps
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+/backups/db_dumps: 
+\end_layout
+
+\begin_layout Plain Layout
+
+total 4 drwxrwxr-x 2 gpadmin gpadmin 4096 
+\end_layout
+
+\begin_layout Plain Layout
+
+    May 19 21:49 20150519
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+/backups/db_dumps/20150519: total 8
+\end_layout
+
+\begin_layout Plain Layout
+
+-rw-rw-r-- 1 gpadmin gpadmin 256 
+\end_layout
+
+\begin_layout Plain Layout
+
+    May 19 21:49 gp_dump_20150519160000_pipes 
+\end_layout
+
+\begin_layout Plain Layout
+
+-rw-rw-r-- 1 gpadmin gpadmin 391 
+\end_layout
+
+\begin_layout Plain Layout
+
+    May 19 21:49 gp_dump_20150519160000_regular_files
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ cat /backups/db_dumps/20150519/        
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_20150519160000_pipes  
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw1:/backups/db_dumps/20150519/         
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_0_2_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw2:/backups/db_dumps/20150519/         
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_1_3_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+mdw:/backups/db_dumps/20150519/          
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_-1_1_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+mdw:/backups/db_dumps/20150519           
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+        gp_dump_-1_1_20150519160000_post_data.gz
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+创建这些named pipes 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpssh -h sdw1 
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] mkdir -p /backups/db_dumps/20150519/ 
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] mkfifo /backups/db_dumps/20150519/   
+\backslash
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+       gp_dump_0_2_20150519160000.gz 
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] cat /backups/db_dumps/20150519/      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+       gp_dump_0_2_20150519160000.gz | nc -l 21000  
+\end_layout
+
+\begin_layout Plain Layout
+
+[sdw1] exit
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在远端创建接收进程
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+nc sdw1 21000 > gp_dump_0_2_20150519160000.gz 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+运行
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpcrondump -x testdb -K 20150519160000 -u /backups 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+同样gpdbrestore可以从named pipes恢复数据库。过程大体和上面反向。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpdbrestore -x testdb -t 20150519160000 -u /backups
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+从并行备份文件恢复 
+\end_layout
+
+\begin_layout Standard
+从并行备份文件恢复数据库的依赖于几个因素。在决定使用恢复程序时，需先确定以下几个问题，
+\end_layout
+
+\begin_layout Enumerate
+备份文件在哪里？如果备份文件位于gp_dump生成时的原始位置，可以简单的使用gp_restore命令来恢复。如果备份文件已经移出集群归档，使用gpdbrest
+ore来恢复。 
+\end_layout
+
+\begin_layout Enumerate
+是否需要恢复整个系统，还是只恢复数据？如果仅需要恢复数据，可以使用gpdbrestore命令来恢复。如果需要重建整个集群，使gpinitsystem命令。
+ 
+\end_layout
+
+\begin_layout Enumerate
+是否恢复的系统与备份时的系统具有相同数量的SEGMENT？如果有相同数量，使用gpdbrestore命令来恢复。 如果不同，那么必须使用非并行恢复。
+\end_layout
+
+\begin_layout Section
+使用gpdbrestore 
+\end_layout
+
+\begin_layout Standard
+gpdbrestore 可以从gpcrondump产生的备份文件恢复数据库。支持如下选项，
+\end_layout
+
+\begin_layout Itemize
+-t timestamp 按时间戳恢复 
+\end_layout
+
+\begin_layout Itemize
+-b YYYYMMDD 指定备份文件日期
+\end_layout
+
+\begin_layout Itemize
+-s dbname 恢复指定数据库的最近备份
+\end_layout
+
+\begin_layout Itemize
+-R hostname:path 从远程指定目录恢复
+\end_layout
+
+\begin_layout Standard
+增量备份需要确定完全的备份集合。可以使用
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpdbrestore -t 20151013195916 --list-backup 
+\end_layout
+
+\end_inset
+
+来获得这个集合。下面这个例子把最新的备份恢复到一个叫做grants_snapshot的数据库中
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpdbrestore -s grants --redirect grants_snapshot 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+如果备份已归档，也仍可以使用gpdbrestore
+\end_layout
+
+\begin_layout Enumerate
+确认可以连接，可以使用ssh 
+\end_layout
+
+\begin_layout Enumerate
+确认目标数据库已创建
+\end_layout
+
+\begin_layout Enumerate
+使用-R选项恢复
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpdbrestore -R archive_host:/gpdb/backups/archive/20120714
+\end_layout
+
+\begin_layout Plain Layout
+
+              -e dbname 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+恢复到配置不同的集群
+\end_layout
+
+\begin_layout Standard
+gpdbrestore要求恢复的系统必须与备份的系统具有相同数目的Segments 。不然，只能通过Master做非并行装载。要进行非并行装载，必须
+\end_layout
+
+\begin_layout Enumerate
+全部由gp_dump或gpcrondump操作生成的备份文件。Master的备份文件包 含了重建数据库对象的DDL。Segment的备份文件包含了用户数据。
+\end_layout
+
+\begin_layout Enumerate
+系统正在运行。 
+\end_layout
+
+\begin_layout Enumerate
+确认需要恢复的数据库已经被创建。 
+\end_layout
+
+\begin_layout Standard
+要恢复到配置不同的集群，
+\end_layout
+
+\begin_layout Enumerate
+首先确保具备了全部的备份文件。包括Master的备份文件 , 
+\begin_inset Newline newline
+\end_inset
+
+(gp_dump_1_1_<timestamp>， gp_dump_1_1_<timestamp>_post_data)和每 个SEGMENT的备份文件(gp_
+dump_0_2_<timestamp>， gp_dump_0_3_<timestamp>，gp_dump_0_4_<timestamp>，等等)。所有的备份文
+件必须含有相同时间戳。缺省状态下，gp_dump在每个SEGMENT的数据目录生成备份文件，因此，Master需要收集所有的备份文件。如果Master没有足够的
+磁盘空间，可以拷贝 一个SEGMENT的备份，装载，删除，再拷贝其他的。 
+\end_layout
+
+\begin_layout Enumerate
+确保在集群中需要恢复的数据库已经被创建。
+\end_layout
+
+\begin_layout Enumerate
+装载Master备份文件以恢复数据库对象 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_-1_1_20160714 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+装载每个Segment的备份文件以恢复数据。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_0_2_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_1_3_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_2_4_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/gp_dump_3_5_20160714 
+\end_layout
+
+\begin_layout Plain Layout
+
+...
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+装载相关对象的文件，恢复数据库对象如索引、触发器、主键约束等
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ psql database_name -f /gpdb/backups/   
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+          gp_dump_0_5_20160714_post_data 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+恢复 sequences的值
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gunzip -c path_to_master_dump_directory/           
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+    gp_dump_-1_1_timestamp.gz                      
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+| egrep "SET search_path|SELECT pg_catalog.setval" 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+> schema_path_and_seq_next_val
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gunzip -c /data/gpdb/master/gpseg-1/db_dumps/20150112/gp_dump_-1_1_2015011214031
+6.gz 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+| egrep "SET search_path|SELECT pg_catalog.setval" 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+> schema_path_and_seq_next_val
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+psql test_restore -f schema_path_and_seq_next_val 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+扩容
+\end_layout
+
+\begin_layout Standard
+数据仓储随时间会曾长。 有时侯数个数仓需要整合成一个较大的集群。新的业务也有可能需要增加硬件能力，比如为分析业务增加CPU。 DEEPGREEN支持在线扩容，系
+统的服务在最大程度上不受影响。 扩容过程透明，容易理解。 扩容过程中镜像等高可用系统正常工作，整个系统保持好的容错，可靠性。
+\end_layout
+
+\begin_layout Section
+概述
+\end_layout
+
+\begin_layout Standard
+数仓规模一般会持续增长。 哪怕是预计中的快速增长，在系统刚上线时，可能也不需要投入到最大容量。随着需求逐步扩容是更经济的方法。
+\end_layout
+
+\begin_layout Standard
+系统扩容时管理员需要考虑以下这些，
+\end_layout
+
+\begin_layout Enumerate
+性能和扩展性要求
+\end_layout
+
+\begin_layout Enumerate
+扩容过程中，系统应保持可用。 过程中会有一个很短时间的服务中断，这个时间长度和系统容量无关。
+\end_layout
+
+\begin_layout Enumerate
+事务一致性
+\end_layout
+
+\begin_layout Enumerate
+容错，数据安全。 数据复制，Backup，也不应被打断
+\end_layout
+
+\begin_layout Enumerate
+过程透明，灵活。
+\end_layout
+
+\begin_layout Standard
+扩容是一个复杂过程，贵在计划和多团队合作。大致过程如下，
+\end_layout
+
+\begin_layout Enumerate
+添加和测试新硬件，安装配置系统软件。
+\end_layout
+
+\begin_layout Enumerate
+安装，配置DEEPGREEN软件。
+\end_layout
+
+\begin_layout Enumerate
+系统开始扩容。 此期间系统仍可用，保持正常服务。
+\end_layout
+
+\begin_layout Enumerate
+根据进程，各个表的数据会重新分布。 直至全部数据分布完成。
+\end_layout
+
+\begin_layout Standard
+整个过程中，gpexpand 会运行四次。
+\end_layout
+
+\begin_layout Enumerate
+生成扩容的输入文件，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand -f hosts_file 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+初始化Segments，并生成扩展Schema 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand -i input_file -D database_name 
+\end_layout
+
+\end_inset
+
+此过程在新的Segment时会初始化，并建立各个表，设置元数据。 这步之后，扩容过程不可逆。
+\end_layout
+
+\begin_layout Enumerate
+重分布数据 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand -d duration 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+删除扩容Schema 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand -c 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+扩容规划
+\end_layout
+
+\begin_layout Standard
+周密规划是扩容操作的重要一步。
+\end_layout
+
+\begin_layout Subsection
+检查清单
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+扩容前准备工作,此时系统是正常工作状态。 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="11" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="left" valignment="top" width="80col%">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+工作
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+规划并执行新硬件或云服务的采购、配置与网络调整。 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+规划扩展计划。Segment 的数量，安排性能测试的时间，计划初始化新Segment的停机时间、安排重分布表的时间 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+执行一个完整的模式备份 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+在新的主机上安装DEEPGREEN
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+SSH互信(gpssh-exkeys) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+检查硬件，操作系统 （gpcheck）
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+检查新硬件的性能，磁盘 I/O，内存，网络带宽等 (gpcheckperf) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+检查在Master数据目录下没有超大文件 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+检查系统数据字典 （catalog）
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+准备扩容文件 （gpexpand）
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+离线工作, 此时系统被锁。 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="left" valignment="top" width="80col%">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+工作
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+检查包括新，原有主机硬件，操作系统 （gpcheck）
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+检查包括新，原有主机的性能，磁盘 I/O，内存，网络带宽等 (gpcheckperf) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+初始化新Segments，加入集群，并创建扩展 Schema(gpexpand -i input_file）
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+在线扩容和数据重新分布，此时系统是正常工作状态。 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="left" valignment="top" width="80col%">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+工作
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+在开始重分布前，停止所有快照操作和消耗磁盘的操作 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+在系统上重分布表(gpexpand) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+清除扩展 Schema(gpexpand -c) 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+运行 ANALYZE 更新分布统计信息。 运行 gpexpand -a 或者后续使用 ANALYZE。 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+规划新硬件 
+\end_layout
+
+\begin_layout Standard
+周密规划，部署完全兼容的硬件对于后续的系统扩展程序来说，可大大降低实施的风险。 新节点应该与现有资源相匹配。硬件规划注意事项包括， 
+\end_layout
+
+\begin_layout Itemize
+为新硬件准备物理空间。需考虑冷却、电力以及其他物理因素。 
+\end_layout
+
+\begin_layout Itemize
+确定已有硬件连接新硬件的物理网络和布线。
+\end_layout
+
+\begin_layout Itemize
+为扩展的系统规划IP地址和网络结构。 
+\end_layout
+
+\begin_layout Itemize
+获取已有硬件的系统配置(用户、配置文件、网络等)，以帮助配置新硬件。 
+\end_layout
+
+\begin_layout Itemize
+根据实际环境中按照理想配置部署硬件。 
+\end_layout
+
+\begin_layout Standard
+在将新硬件加入网络环境后，执行各项系统检查，测试。
+\end_layout
+
+\begin_layout Subsection
+规划新SEGMENT初始化 
+\end_layout
+
+\begin_layout Standard
+扩容需要一个短暂的系统停机时间。 在此期间，执行gpexpand，初始化S俄个美女同事， 加入集群，并创建扩展Schema。所需的时间取决于集群中对象的数量和硬
+件性能。 多数情况下这个过程可以在30分钟内完成。
+\end_layout
+
+\begin_layout Standard
+注意：在新的Segment完成初始化后，系统将无法再使用扩展前的备份文件来恢复系统。此时系统认扩展配置被提交，且无法回滚。
+\end_layout
+
+\begin_layout Subsubsection
+规划SEGMENT镜像
+\end_layout
+
+\begin_layout Standard
+如果已有集群有Mirror，新的Segment也必须有Mirror配置。相反的，如果已有系统没有Mirror，使用gpexpand命令时也无法添加Mirror。
+对于有Mirror的集群，必须确保新增主机的数量足够适应添加新的Mirror。需要新主机的数量取决于已有Mirror的策略。
+\end_layout
+
+\begin_layout Itemize
+Spread Mirror – 新主机的数量至少比每个主机Segment的数量大。
+\end_layout
+
+\begin_layout Itemize
+Grouped Mirror – 新主机数不小于2。第一个主机上的Segment可以Mirror在第二个主机上，反之亦然。 
+\end_layout
+
+\begin_layout Subsubsection
+增加每个主机Segment数量 
+\end_layout
+
+\begin_layout Standard
+缺省时，新增的主机与已有主机配置相同数量的Segment。作为可选项，在扩展时，可以调整增加每个主机的Segment数量，还可只增加现有主机上的Segment数
+量。
+\end_layout
+
+\begin_layout Standard
+例如，现有系统每个主机有2个Segment，可以使用gpexpand初始化，把现有主机和新增主机上的Segment都增加到4个。
+\end_layout
+
+\begin_layout Standard
+在生成扩展配置文件时，命令会提示该选项。扩展配置文件允许手动修改。
+\end_layout
+
+\begin_layout Subsubsection
+扩展Schema 
+\end_layout
+
+\begin_layout Standard
+在初始化时，gpexpand会生成扩展Schema。如果在初始化时(gpexpand -D)没指定数据库，会使用环境变量PGDATABASE指定的数据库。系统中
+每张表的源数据被存到扩展Schema中，以帮助跟踪扩展过程中的状态。该Schema包含两张表和一个View，用以跟踪扩展操作的状态
+\end_layout
+
+\begin_layout Enumerate
+gpexpand.status
+\end_layout
+
+\begin_layout Enumerate
+gpexpand.status_detail 
+\end_layout
+
+\begin_layout Enumerate
+gpexpand.expansion_progress 
+\end_layout
+
+\begin_layout Standard
+管理员可以通过修改gpexpand.status_detail表来控制扩展进程。例如，从该表中删除记录可以阻止相应表扩展到新Segment上。修改记录的rank字
+段可以控 制表在重分布过程中的先后顺序。
+\end_layout
+
+\begin_layout Subsection
+规划重分布表
+\end_layout
+
+\begin_layout Standard
+重分布表是系统正常运行时进行的。多数情况重分布表的操作可以在一个的gpexpand会话中完成。对于大型系统来说，可能需要安排多个gpexpand会话，还需要调整
+安排重分布表之间的顺序，减小对性能的影响。如果可能，尽可能使用一个会话 来完成重分布。
+\end_layout
+
+\begin_layout Standard
+注意：为了完成重分布表，Segment主机必须有足够的空间来存放大表的临时数据。正在被重分布的表操作期间对于读和写都是不可用的。
+\end_layout
+
+\begin_layout Standard
+重分布对性能的影响取决于表的大小、存储类型和分区结构。一张表重分布的时间与CREATE TABLE AS SELECT操作相当。在重分布一张TB级别的表时，可能
+会占用大量的可用系统资源，这对于其他的查询和工作负载会有的影响。
+\end_layout
+
+\begin_layout Subsection
+管理大规模集群的重分布 
+\end_layout
+
+\begin_layout Standard
+可以通过调整重分布的等级来管理表重分布的顺序。对重分布顺序的管理可以应对磁盘空间的限制，以及快速恢复查询的性 能。在规划重分布时，应该考虑每个表在被重分布时锁的
+影响。用户活动可能会延迟重分布的开始时间。同样的，当gpexpand正在重分布某张表时，其他操作也无法访问这张表。
+\end_layout
+
+\begin_layout Subsubsection
+如果系统有丰富的磁盘空间
+\end_layout
+
+\begin_layout Standard
+在磁盘空间(存储大表临时数据)丰富的系统中，可以首先重分布最常用的表以尽快的恢复查询性能。可将这些表的排名调高，并在系统资源利用较低的时候安排重分布操作。一次只
+运行一次表的重分布，直到大或重要的表完成重分布。
+\end_layout
+
+\begin_layout Subsubsection
+系统空余磁盘空间有限 
+\end_layout
+
+\begin_layout Standard
+如果磁盘空间有限，应该尽量先重分布较小的表，这样可以为后续被重分布的大表清理出足够的磁盘空间。已有节点的空余空间会随着每完成一张表的重分布而增加。一旦所有节点的
+磁盘空间都足够存储大表，就可以开始大表重分布了。因为排它锁的要求，应该在系统空闲时间安排大表的重分布。
+\end_layout
+
+\begin_layout Standard
+还应该考虑以下因素，
+\end_layout
+
+\begin_layout Itemize
+在空闲时间运行并发的重分布操作，最大化利用系统资源来完成重分布。 
+\end_layout
+
+\begin_layout Itemize
+在使用并发重分布操作时，需确认系统的最大连接数限制。
+\end_layout
+
+\begin_layout Subsection
+重分布AO表和压缩表 
+\end_layout
+
+\begin_layout Standard
+AO表与压缩AO表在使用gpexpand重分布时的效率与堆表是不同的。压缩表需要CPU资源来压缩和解压数据，这会增加对系统性能的影响。对于 类似数据，类似大小的
+表来说，总体的性能差异大致如下， 
+\end_layout
+
+\begin_layout Itemize
+非压缩AO表比堆表的重分布快10%。 
+\end_layout
+
+\begin_layout Itemize
+ZLIB压缩AO表比非压缩AO表的重分布明显慢，可能会慢80%。 
+\end_layout
+
+\begin_layout Itemize
+系统如果使用如ZFS/LZJB之类数据压缩，通常重分布也会慢一些。
+\end_layout
+
+\begin_layout Standard
+注意：如果数据在已有节点上使用了压缩，那么在新的节点上应该使用同样的压缩方式以避免出现磁盘空间不足的情况。
+\end_layout
+
+\begin_layout Subsection
+重分布有主键约束的表 
+\end_layout
+
+\begin_layout Standard
+在初始化新Segment之后和重分布表完成之前，这段时间内的主键约束是不生效的。在此期间插入到表中的重复数据会妨碍重分布表。一旦表被成功重分布，主键约束会再次生
+效。如果在扩展中数据违反了约束，可以使用如下的方法补救， 
+\end_layout
+
+\begin_layout Itemize
+清除违反主键约束的重复数据，重新运行gpexpand命令。 
+\end_layout
+
+\begin_layout Itemize
+删除主键约束，重新运行gpexpand命令。
+\end_layout
+
+\begin_layout Subsection
+重分布有自定义类型的表 
+\end_layout
+
+\begin_layout Standard
+如果一个表有自定义类型的列，而此列又被删除，那么这张表就无法重分布。 对此可先使用CREATE TABLE AS SELECT重建该表，这样，那被删除的列在该过
+程中会被清除，然后再使用扩展命令重分布该表。
+\end_layout
+
+\begin_layout Subsection
+重分布分区表 
+\end_layout
+
+\begin_layout Standard
+因为扩展命令可以一个分区一个分区的重分布一张大表，因此，有效的分区设计可以显著的降低重分布对性能的影响。仅仅是正在被重分布分区表的子表会被置为
+ RANDOMLY分布策略，而且也只有子表在重分布时会获取读写锁定的排它锁。
+\end_layout
+
+\begin_layout Subsection
+重分布有索引的表 
+\end_layout
+
+\begin_layout Standard
+重分布表之后gpexpand命令必须重建索引。 多个索引的表重分布会有很大的性能影响，并会明显慢。 
+\end_layout
+
+\begin_layout Section
+准备与添加主机 
+\end_layout
+
+\begin_layout Standard
+首先确认新节点已经安装配置好。已安装DEEPGREEN，SSH互信，性能测试合格。 首先只测试新节点，然后新节点和已有节点一 起测试。 一般来说，建议在网络环境
+发生变化或者任何系统环境发生变化时都应该执行性能测试。
+\end_layout
+
+\begin_layout Subsection
+将新节点添加到互信环境 
+\end_layout
+
+\begin_layout Standard
+为了确保管理工具可以连接到所有节点，新节点必须与已有节点之间交换SSH密钥。执行两次密钥交换，一次使用root用户(为了方便管理)，一次使用gpadmin用户。
+按照顺序执行如下任务，
+\end_layout
+
+\begin_layout Enumerate
+交换root的SSH密钥
+\end_layout
+
+\begin_layout Enumerate
+创建gpadmin用户
+\end_layout
+
+\begin_layout Enumerate
+交换gpadmin的SSH密钥
+\end_layout
+
+\begin_layout Subsubsection
+交换root的SSH密钥
+\end_layout
+
+\begin_layout Enumerate
+创建两个的Host列表文件。一个包含现有集群的所有Host名称，另一个包含新扩展节点的Host名称。对于已有主机，可使用首次建立 SSH密钥的Host文件。如果
+使用了多网卡配置，需确保交换了所有的HostName SSH密钥。 例如，假设mdw使用一个网卡，sdw1, sdw2, sdw3各使用4个 NIC，
+ 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+mdw 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw1-1 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw1-2 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw1-3 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw1-4 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw2-1 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw2-2 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw2-3 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw2-4 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw3-1 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw3-2 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw3-3 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw3-4
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+在Master主机上以root登录，source greenplum_path.sh文件。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ su -  
+\end_layout
+
+\begin_layout Plain Layout
+
+# source /usr/local/greenplum-db/greenplum_path.sh
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+执行gpssh-exkeys命令。例如， 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# gpssh-exkeys -e /home/gpadmin/existing_hosts_file -x  
+\end_layout
+
+\begin_layout Plain Layout
+
+/home/gpadmin/new_hosts_file
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+gpssh-exkeys会检查远程主机并在所有主机之间执行密钥交换。在提示的时候需要输入root用户密码。
+\end_layout
+
+\begin_layout Subsubsection
+创建gpadmin用户
+\end_layout
+
+\begin_layout Enumerate
+使用gpssh命令在所有新Segment主机上创建gpadmin用户。 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# gpssh -f new_hosts_file 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+'/usr/sbin/useradd gpadmin -d  /home/gpadmin -s /bin/bash'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+设置新建gpadmin用户的密码。例如,
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# gpssh -f new_hosts_file 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+'echo gpadmin_password | passwd  gpadmin --stdin
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+通过查看home目录确认gpadmin用户已经创建
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# gpssh -f new_hosts_file ls -l /home 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+交换gpadmin的SSH密钥
+\end_layout
+
+\begin_layout Enumerate
+以gpadmin用户登录, 执行gpssh-exkeys命令。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ # gpssh-exkeys -e /home/gpadmin/existing_hosts_file -x  
+\end_layout
+
+\begin_layout Plain Layout
+
+/home/gpadmin/new_hosts_file
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+gpssh-exkeys会检查远程主机并在所有主机之间执行密钥交换。在提示的时候输入gpadmin用户密码。
+\end_layout
+
+\begin_layout Subsection
+检查 OS 设置
+\end_layout
+
+\begin_layout Standard
+使用gpcheck命令来检查所有新Segment主机，确保其OS设置符合DEEPGREEN运行的要求。
+\end_layout
+
+\begin_layout Subsection
+检查磁盘 I/O 和内存带宽 
+\end_layout
+
+\begin_layout Standard
+使用gpcheckperf命令来测试磁盘I/O和内存带宽。执行gpcheckperf测试新Segment主机。例如, 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpcheckperf -f new_hosts_file -d /data1 -d /data2 -v  
+\end_layout
+
+\end_inset
+
+由于完成该测试需要在Host上拷贝很大的文件，可能需要花费较长的时 间。在测试完成时，将会列出磁盘写、磁盘读、流测试结果的概要。
+\end_layout
+
+\begin_layout Subsection
+把新硬件集成到系统中 
+\end_layout
+
+\begin_layout Standard
+在初始化新Instance之前，先停机。应在包含原有和新Segment主机的所有节点上重复一遍性能测试。检查OS设置，检查磁盘I/O和内存带宽。
+\end_layout
+
+\begin_layout Section
+初始化新的Segment
+\end_layout
+
+\begin_layout Standard
+使用gpexpand命令来初始化新的Segment，生成扩展Schema，在系统范围内设置分布策略为RANDOMLY。第一次运行gpexpand命令时就完成了这
+些任务。随后再执行gpexpand命令会发现扩展 Schema已经创建，并开始执行重分布表。
+\end_layout
+
+\begin_layout Subsection
+生成系统扩展配置文件 
+\end_layout
+
+\begin_layout Standard
+要开始扩展，gpexpand命令需要一个包含关于新Segment和主机信息的配置文件。 如果不指定配置文件运行gpexpand命令，它将以交互的方式采集
+ 需要的信息，自动生成配置文件。如果使用交互方式生成配置文件，可以选择性的指定一个包含扩展主机信息的文件。 如果在输入主机名时所使用的平台或命令对长度有限制，可
+以通过-f参数来指定主机名列表。
+\end_layout
+
+\begin_layout Subsubsection
+交互模式生成扩展配置文件 
+\end_layout
+
+\begin_layout Standard
+在执行gpexpand以生成配置文件之前，需要确认下列所需信息，
+\end_layout
+
+\begin_layout Enumerate
+新节点数量(或者Host文件) 
+\end_layout
+
+\begin_layout Enumerate
+新节点的Host名称(或者Host文件) 
+\end_layout
+
+\begin_layout Enumerate
+已有节点的Mirror策略
+\end_layout
+
+\begin_layout Enumerate
+每个主机添加的Segment数量
+\end_layout
+
+\begin_layout Standard
+gpexpand程序会根据这些信息生成一个配置文件。这个文件包含dbid、content ID、数据目录(和gp_segment_configuration表中
+的一样)。 该配置文件会被保存在命令运行的当前目录。生成这个文件步骤如下，
+\end_layout
+
+\begin_layout Enumerate
+以系统用户(比如gpadmin)登录Master主机。 
+\end_layout
+
+\begin_layout Enumerate
+运行gpexpand命令。命令会提示关于准备扩展操作的信息。 也使用-f指定一个Host文件。例如， 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpexpand -f /home/gpadmin/new_hosts_file 
+\end_layout
+
+\end_inset
+
+在提示时，选择Y继续。 
+\end_layout
+
+\begin_layout Enumerate
+除非使用-f指定Host文件，命令会提示输入Host Name。 如果只是在已有节点上增加SEGMENTS，在提示处输入空行即可。不要输入 localhost或
+者任何系统中已经存在的Host Name。 
+\end_layout
+
+\begin_layout Enumerate
+假如有Mirror，输入Mirror策略。选项为spread|grouped|none，缺省为grouped。 需确保有足够的节点数量来支撑选择的Mirror策
+略。
+\end_layout
+
+\begin_layout Enumerate
+如果有必要，输入要在每个节点上增加的Segment数量。缺省情况下，新节点与已有节点采用相同数量的Segment。但作为可选项，可以增加每个节点的Segment
+数量。 如果想要增加每个节点Segment的数量，想增加的Segment数。 例如，现有每个节点有2个Segment，输入2， 每个主机的Segment数量为4
+。 
+\end_layout
+
+\begin_layout Enumerate
+如果增加新的Segment，需要为新Segment输入数据目录路径。不要指定真实的数据目录，gpexpand命令会在已有的数据目录下自动创建。
+ 例如，已有的数据目录像这样，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+/gpdata/primary/gp0 
+\end_layout
+
+\begin_layout Plain Layout
+
+/gpdata/primary/gp1
+\end_layout
+
+\end_inset
+
+应该输入(每个提示输入一个)来指定两个新的Segment的数据目录，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+/gpdata/primary 
+\end_layout
+
+\begin_layout Plain Layout
+
+/gpdata/primary
+\end_layout
+
+\end_inset
+
+在执行初始化时，gpexpand命令会在/gpdata/primary目录下自动创建gp2和 gp3两个新的目录。 
+\end_layout
+
+\begin_layout Enumerate
+如果增加新的Mirror，同样需要为新Mirror输入数据目录的跟路径。 例如，已有
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+/gpdata/mirror/gp0 
+\end_layout
+
+\begin_layout Plain Layout
+
+/gpdata/mirror/gp1
+\end_layout
+
+\end_inset
+
+应该输入(每个提示输入一个) 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+/gpdata/mirror 
+\end_layout
+
+\begin_layout Plain Layout
+
+/gpdata/mirror
+\end_layout
+
+\end_inset
+
+来指定两个新的Mirror的数据目录。执行初始化时，gpexpand命令会在/gpdata/mirror目录下自动创建gp2和 gp3两个新的目录。
+\end_layout
+
+\begin_layout Standard
+在输入全部需要的信息之后，命令会在当前路径生成一个扩展配置文件。 例如： gpexpand_inputfile_yyyymmdd_145134
+\end_layout
+
+\begin_layout Subsubsection
+扩展配置文件的格式
+\end_layout
+
+\begin_layout Standard
+除非对于扩展有特殊的需求，建议使用交互的模式来生成扩展配置文件。
+\end_layout
+
+\begin_layout Standard
+扩展配置文件的格式为： 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+hostname:address:port:fselocation:dbid:content:  
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+preferred_role:replication_port 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+例如： 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+sdw5:sdw5-1:50011:/gpdata/primary/gp9:11:9:p:53011 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw5:sdw5-2:50012:/gpdata/primary/gp10:12:10:p:53011 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw5:sdw5-2:60011:/gpdata/mirror/gp9:13:9:m:63011 
+\end_layout
+
+\begin_layout Plain Layout
+
+sdw5:sdw5-1:60012:/gpdata/mirror/gp10:14:10:m:63011
+\end_layout
+
+\end_inset
+
+对每个新Segment， 扩展配置文件在格式上需要如下信息：
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+扩展配置文件
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+参数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+有效值
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+描述
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+hostname
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+hostname
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+主机名
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+port
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+可用的端口号
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+数据库的监听端口，在已有base端口上增加
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+dbid
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+整数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+数据库ID，不能与已有冲突
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+content
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+整数
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+不能冲突
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+preferred_role
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+p | m
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+primary | mirror
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+replication_port 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+复制端口
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+已有replication_port base 上增量
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+运行 gpexpand 初始化新Segment
+\end_layout
+
+\begin_layout Standard
+在生成扩展配置文件之后，运行gpexpand来初始化。该命令会自动停机，在完成初始化之后会自动重启系统。 
+\end_layout
+
+\begin_layout Enumerate
+以系统用户(比如gpadmin)登录Master主机。 
+\end_layout
+
+\begin_layout Enumerate
+使用-i参数指定扩展配置文件，运行gpexpand命令。作为可选，使用-D指定扩展Schema所在的数据库。例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpexpand -i input_file -D database1 
+\end_layout
+
+\end_inset
+
+该命令会查出系统中是否已经存在一个扩展Schema。如果已经存在一个扩展Schema，在开始新的扩展操作之前应该使用gpexpand -c命令清除该
+ Schema。
+\end_layout
+
+\begin_layout Standard
+在初始化过程完成之后，即可连接到数据库查看扩展Schema。
+\end_layout
+
+\begin_layout Subsection
+扩展失败后回滚
+\end_layout
+
+\begin_layout Standard
+如果扩展失败，可以使用gpexpand -r|--rollback来回滚。如果初始化失败，集群停机，必须以master only方式重启 （gpstart
+ -m）。可使用下面的命令，指定包含扩展Schema的数据库名称， 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand --rollback -D database_name 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+重分布表 
+\end_layout
+
+\begin_layout Standard
+在成功生成一个扩展Schema之后，就可以恢复到在线状态并在全部集群中重新分布表。在空闲时间段使用gpexpand命令重分布表可以降低CPU使用和表锁对数据库操
+作的影响。另外，可以调整Table的排名来确保大表和关键表按照优先顺序被重分布。
+\end_layout
+
+\begin_layout Standard
+在重分布表的过程中，任何新建的表或分区都是在创建所有的Segment上的，这也是正常的情况。 无论表是否重分布完，查询都会使用所有Segment。
+ 正在重分布的表会被锁住，其他任何读写操作都无法访问该表。在重分布完成 之后，即恢复正常操作。
+\end_layout
+
+\begin_layout Subsection
+排名重分布表 
+\end_layout
+
+\begin_layout Standard
+对于大型系统，可以通过在扩展Schema中调整重分布表的排名来控制重分布的顺序。可用磁盘空间的两也会影响到重分布表的排名。通过更新gpexpand.status_
+detail表的rank值来调整重分布表的排名。 使用psql或者其他客户端连接到数据库更新gpexpand.status_detail表。例如，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> UPDATE gpexpand.status_detail SET rank=10;
+\end_layout
+
+\begin_layout Plain Layout
+
+=> UPDATE gpexpand.status_detail SET rank=1 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE fq_name = 'public.lineitem'; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=> UPDATE gpexpand.status_detail SET rank=2 
+\end_layout
+
+\begin_layout Plain Layout
+
+   WHERE fq_name = 'public.orders';
+\end_layout
+
+\end_inset
+
+第一条命令是将所有表的排名降到10，然后将lineitem的排名设置为1，而orders 的排名设置为2。在开始重分布时，lineitem会首先被重分布，接下来
+的是orders， 然后才是gpexpand.status_detail中的其他表。
+\end_layout
+
+\begin_layout Subsection
+使用 gpexpand 重分布表
+\end_layout
+
+\begin_layout Enumerate
+以系统用户(比如gpadmin)登录Master主机。 
+\end_layout
+
+\begin_layout Enumerate
+执行gpexpand命令。作为可选，可以选择使用-d或者-e来定义重分布会话的周期。例如，运行该命令并限制最长60个小时的周期， 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpexpand -d 60:00:00
+\end_layout
+
+\end_inset
+
+该命令会一直运行到分布Schema中的最后一张Table被标记为成功，完成分布，或者直到指定的持续时间或者结束时间到达为止。每个会话的开始和结束时间
+ gpexpand命令都会更新到gpexpand.status表中。
+\end_layout
+
+\begin_layout Section
+监测重分布表 
+\end_layout
+
+\begin_layout Standard
+在重分布表过程中，任何时间都可以查询该扩展Schema。
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand.expansion_progress
+\end_layout
+
+\end_inset
+
+提供了当前进度的摘要，包括预估的已经重分布的比率和估计的完成时间。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+gpexpand.status_detail
+\end_layout
+
+\end_inset
+
+表可用于查看每张表的重分布状态信息。
+\end_layout
+
+\begin_layout Subsection
+查看扩展状态 
+\end_layout
+
+\begin_layout Standard
+第一张表的扩展完成后，gpexpand.expansion_progress就可以估算的重分布的速度。 每次开始一 个新的重分布表的会话时都会重新开始计算。可使用
+psql或者其他支持的客户端连接到数据库，查询 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# SELECT * FROM gpexpand.expansion_progress; 
+\end_layout
+
+\begin_layout Plain Layout
+
+             name             |         value 
+\end_layout
+
+\begin_layout Plain Layout
+
+------------------------------+----------------------- 
+\end_layout
+
+\begin_layout Plain Layout
+
+ Bytes Left                   | 5534842880 
+\end_layout
+
+\begin_layout Plain Layout
+
+ Bytes Done                   | 142475264 
+\end_layout
+
+\begin_layout Plain Layout
+
+ Estimated Expansion Rate     | 680.75667095996092 MB/s 
+\end_layout
+
+\begin_layout Plain Layout
+
+ Estimated Time to Completion | 00:01:01.008047 
+\end_layout
+
+\begin_layout Plain Layout
+
+ Tables Expanded              | 4 
+\end_layout
+
+\begin_layout Plain Layout
+
+ Tables Left                  | 4 (6 rows)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+清除扩展 Schema 
+\end_layout
+
+\begin_layout Standard
+扩展操作已经完成之后，可以删除扩展Schema。要想再次运行扩展操作，首先必须清除已有的扩展Schema。 
+\end_layout
+
+\begin_layout Enumerate
+以系统用户(比如gpadmin)登录Master主机。 
+\end_layout
+
+\begin_layout Enumerate
+使用-c参数执行gpexpand命令 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpexpand -c  
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+使用gptransfer迁移数据
+\end_layout
+
+\begin_layout Standard
+gptransfer 可以把一个DEEPGREEN数据库中的数据，元数据迁移到另一个数据库里。它支持全库迁移和指定表的迁移。源数据库和目标数据库可以在同一个或不
+同的集群里。 数据通过gpfdist在各个Segment间并行传输。
+\end_layout
+
+\begin_layout Standard
+gptransfer 全库迁移会迁移数据库里所有的schema，表，索引，view，roles， UDF， resource queues。 postgres.c
+onf 等配置文件必须由管理员手动迁移。MADLIB等扩展功能也需要管理员手动迁移。gptransfer 可以在源数据库上运行，也可以在目标数据库中运行。
+ 目标数据库的segment个数必须不少于源数据库的Segment数。源数据库和目标数据库各个Segments之间必须可以通信。
+\end_layout
+
+\begin_layout Standard
+gptransfer 使用外部表，gpfdist并行加载，named pipes，实现迁移。源数据库把数据写入到可写的外部表里，目标数据库从一个可读外部表里读取
+。 中间以named pipes，gpfdist并行加载工具连接。gptransfer 批处理迁移，对每个表， 都进行如下操作，
+\end_layout
+
+\begin_layout Itemize
+源数据库中创建可写外部表
+\end_layout
+
+\begin_layout Itemize
+目标数据库中创建可读外部表
+\end_layout
+
+\begin_layout Itemize
+创建named pipes， 启动gpfdist
+\end_layout
+
+\begin_layout Itemize
+在源数据库执行 SELECT INTO，将数据写入外部表
+\end_layout
+
+\begin_layout Itemize
+在目标数据库执行 SELECT INTO， 将数据从外部表读出并写入目标表
+\end_layout
+
+\begin_layout Itemize
+可选，进行MD5验证
+\end_layout
+
+\begin_layout Itemize
+删除named pipes，外部表等
+\end_layout
+
+\begin_layout Section
+快速方式和慢方式
+\end_layout
+
+\begin_layout Standard
+当目标数据库的Segment数目不小于源数据库Segment数目时，gptransfer可采用快速方式。否则，只能采取慢方式。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+gptansfer 快速方式
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gptransfer-fast.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+gptansfer 慢方式
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename /Users/ftian/work/manual/admin/pic/gptransfer-slow.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+批处理大小和子批处理
+\end_layout
+
+\begin_layout Standard
+gptansfer 可用 –batch-size指定批处理大小。 批处理大小是指可同时传输的表的个数，缺省值为2， 最大值为10.
+ 可以用–sub-batch-size指定子批处理大小，这个大小是指在一个表传输过程中的并行数。 缺省值是25， 最大值是50.
+\end_layout
+
+\begin_layout Section
+限制
+\end_layout
+
+\begin_layout Standard
+gptansfer 只能用于迁移用户数据库而不能用于系统数据库，template0， template1， Postgres。 对每个表，gptansfer
+ 都有一个固定的开销。 迁移很多小或空的表速度可能会非常慢。 这时，可用其它方式迁移小的表，而只用gptansfer 迁移大表。
+\end_layout
+
+\begin_layout Section
+全库迁移与表迁移
+\end_layout
+
+\begin_layout Standard
+gptansfer 使用 –full 选项时， 会迁移全部数据库。 也可以使用 -t 或 -f （以文件） 指定特定表的迁移。下表列出了它们迁移的不同之处，
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+迁移的Object
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Object
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Full (–full mode)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Table (-t mode)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Data
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Y
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Y
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Indexes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Y
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Y
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Rules
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Y
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Functions
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Y
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Resource Queues
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Y
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+postgresql.conf
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+pg_hba.conf
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+gppkg
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+N
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+锁
+\end_layout
+
+\begin_layout Standard
+如果使用了 -x 选项，源表会被独占锁。
+\end_layout
+
+\begin_layout Section
+失败
+\end_layout
+
+\begin_layout Standard
+如果一个表迁移失败，gptansfer 会报告，并把表名字写入一个失败表名文件。 此文件格式与 -f 选项的文件格式相同，故而可以使用 -f 重试。
+\end_layout
+
+\begin_layout Section
+最佳做法
+\end_layout
+
+\begin_layout Standard
+通过使用--batch-size和--sub-batch-size命令行选项时， 注意不要指定太多的并行性。 不要超过主机内存。太多的子进程可能会耗尽内存，导致
+Python内存不足错误。从较小的批量大小和分批批量开始，并根据的经验增加。
+\end_layout
+
+\begin_layout Standard
+分阶段传输数据库。首先，使用-schema-only和-d数据库选项运行gptransfer，然后分阶段传输表。使用--schema-only选项运行gptra
+nsfer后，请确保添加--truncate或--drop选项以防止由于表已经存在而导致失败。
+\end_layout
+
+\begin_layout Standard
+小心选择gpfdist和外部表参数，如外部表数据的分隔符和最大行长度。例如，不要选择数据中可能出现的字符做分隔符。
+\end_layout
+
+\begin_layout Standard
+如果您有许多空表要传输，请考虑使用DDL脚本而不是gptransfer。用于设置每个表进行传输的gptransfer开销较大，不是传输空表的有效方法。
+\end_layout
+
+\begin_layout Standard
+gptransfer在传输数据之前创建表索引。这会减慢数据传输，因为索引在数据插入表中同时被更新。对于大型表，特别要考虑在运行gptransfer之前删除索引，
+并在传输完成时重新创建索引。
+\end_layout
+
+\begin_layout Chapter
+日常系统维护 
+\end_layout
+
+\begin_layout Standard
+和其他的数据库软件一样 DEEPGREEN 需要一些定期的维护任务以达到最佳性能。这里讨论的任务是必要的，但管理员可以使用标准的UNIX工具如cron脚本来调度
+。管理员应确保它们成功的执行。 
+\end_layout
+
+\begin_layout Section
+Vacuum和Analyze 
+\end_layout
+
+\begin_layout Standard
+由于DEEPGREEN使用的是MVCC事务并发模型，被删除或更新的数据行依然占据着物理 磁盘空间。如果数据库有大量的更新和删除， 会产生大量过期记录。VACUM
+M会回收空间。 同时 VACUUM还会收集表级别的统计信息，如数据行数，因此对于AO表VACUUM也是有必要的 。VACUUM对于AO表的操作很快，因为其没有空
+间需要被回收。VACUUM AO表时，如果过期的数据比例少于一个值 （缺省10），那么不会重整。 无论值为何，VACUUM FULL总会重整。
+ 
+\end_layout
+
+\begin_layout Section
+事务 ID 管理
+\end_layout
+
+\begin_layout Standard
+MVCC事务依赖于事务ID(XID)的数字以确定其他事务的可见性。但是事务ID的值是有限的，长时间(超过2B个事务)运行，系统将会出现事务ID循环的问题。为了避
+免这个问题，在每个数据库每2B个事务的时候，需要对每张表执行VACUUM。长时间不运行VACUUM，DEEPGREEN会报警， 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+WARNING: database "database_name" must be vacuumed
+\end_layout
+
+\begin_layout Plain Layout
+
+   within number_of_transactions transactions
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+如果不进行VACUUM， DEEPGREEN会发布如下错误以防止数据丢失。 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+FATAL: database is not accepting commands to avoid  
+\end_layout
+
+\begin_layout Plain Layout
+
+   wraparound data loss in database "database_name"
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+这两个信息由 xid_warn_limit controls 和 xid_stop_limit 参数控制。发生这种错误时， 采用如下步骤修复，
+\end_layout
+
+\begin_layout Enumerate
+停机
+\end_layout
+
+\begin_layout Enumerate
+暂时把 xid_stop_limit 减小 10，000，000
+\end_layout
+
+\begin_layout Enumerate
+重启
+\end_layout
+
+\begin_layout Enumerate
+VACUUM FREEZE 
+\end_layout
+
+\begin_layout Enumerate
+重置 xid_stop_limit
+\end_layout
+
+\begin_layout Enumerate
+重启数据库
+\end_layout
+
+\begin_layout Section
+系统目录维护 
+\end_layout
+
+\begin_layout Standard
+大量的CREATE和DROP命令会导致系统表的迅速膨胀，以至于影响系统性能。 例如，在大量的DROP TABLE语句之后，扫描系统元数据的操作性能会大大降低。根
+据不同的系统，在数万个DROP TABLE语句之后就可能会发生性能下降。建议定期的执行系统目录维护操作，以回收因删除对象而导致的空间占用。 如果很长时间没有执行
+，可能需要执行 VACUUM FULL。
+\end_layout
+
+\begin_layout Standard
+定期VACUUM是安全的。 可以在系统处于常规运行状态时做这些操作。下面的示例脚本系统目录进行VACUUM操作，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+#!/bin/bash 
+\end_layout
+
+\begin_layout Plain Layout
+
+DBNAME="<database-name>" 
+\end_layout
+
+\begin_layout Plain Layout
+
+SYSTABLES="' pg_catalog.' || relname || ';' 
+\end_layout
+
+\begin_layout Plain Layout
+
+from pg_class a, pg_namespace b  
+\end_layout
+
+\begin_layout Plain Layout
+
+where a.relnamespace=b.oid and 
+\end_layout
+
+\begin_layout Plain Layout
+
+    b.nspname='pg_catalog' and a.relkind='r'" 
+\end_layout
+
+\begin_layout Plain Layout
+
+psql -tc "SELECT 'VACUUM' || $SYSTABLES" $DBNAME 
+\end_layout
+
+\begin_layout Plain Layout
+
+| psql -a $DBNAME 
+\end_layout
+
+\begin_layout Plain Layout
+
+reindexdb --system -d $DBNAME 
+\end_layout
+
+\begin_layout Plain Layout
+
+analyzedb -s pg_catalog -d $DBNAME
+\end_layout
+
+\end_inset
+
+如果很长时间都没有执行系统目录维护，系统表可能会被过期空间严重膨胀， 导致即便简单的元数据操作也需要很长的等待时间。比如列出用户表的操作需要等待1到2秒。这时需
+要在专门安排的时间停止服务，使用VACUUM FULL来完成执行。定期的运行系统目录维护可以避免较高成本的VACUUM FULL操作。
+\end_layout
+
+\begin_layout Section
+为优化查询进行回收和分析 
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 根据数据库的统计信息使用基于成本的查询优化器。精确的统计信息使得优化器可以更好地评估选择性和检索的行数从而选择最有效的查询计划。
+ ANALYZE 命令收集优化器需要用到的列统计信息。VACUUM和ANALYZE操作可以在同一个命令中一起运行。VACUUM ANALYZE。
+\end_layout
+
+\begin_layout Section
+日常重建索引 
+\end_layout
+
+\begin_layout Standard
+对于B-tree索引，更新较多的表上新重建的索引更快。删掉索引(DROP INDEX)然后重 新创建(CREATE INDEX)通常比REINDEX命令更快。
+\end_layout
+
+\begin_layout Section
+管理日志文件
+\end_layout
+
+\begin_layout Standard
+数据库服务日志文件输出量很大，不需要无限期的保存这 些日志。管理员需要定期的滚动日志文件，启用新的日志文件，删除旧的日志文件。DEEPGREEN
+ 在Master和所有的Segment上都开启了日志文件滚动。每天的日志文件在数据目录的pg_log目录下。尽管日志是按天滚动的，但它们不会被自动清空或删除。管
+理员需要通过一些脚本或程序来定期的清理各实例pg_log目录下的旧日志文件。
+\end_layout
+
+\begin_layout Standard
+管理程序的日志文件缺省位于~/gpAdminLogs目录下。也可以定期清空旧日志。
+\end_layout
+
+\begin_layout Chapter
+推荐的维护工作
+\end_layout
+
+\begin_layout Standard
+为确保DEEPGREEN数据库集群的高可用性和一致性能, 我们而推荐的以下监视和维护工作。管理员可以定期执行，以确保系统的所有组件都能最佳地运行。
+ 监控有助于您早日发现和诊断问题。 维护活动可帮助您保持系统的最新状态，避免性能下降。没有必要在每个集群中实施所有这些建议; 请根据的服务要求实施措施。
+\end_layout
+
+\begin_layout Section
+监控
+\end_layout
+
+\begin_layout Itemize
+列出当前Down 的Segment。 如发现任何，则应该生成警告或警报。 推荐频率：每5到10分钟运行一次。严重性：重要。 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE status <> 'u';
+\end_layout
+
+\end_inset
+
+如果查询返回任何行，请按照下列步骤更正问题： 验证相关的主机是否响应。 如果主机正常，请检查日志文件以查找 primary／mirror 失败的原因。如果没有找
+到意外的错误，请运行gprecoverseg程序恢复。
+\end_layout
+
+\begin_layout Itemize
+检查处于 change tracking 的segments。如果返回任何行，则应该生成警告或警报。 推荐频率：每5到10分钟运行一次。严重性：重要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE mode = 'c';
+\end_layout
+
+\end_inset
+
+如果查询返回任何行，请按照下列步骤更正问题： 验证相关的主机是否响应。 如果主机正常，请检查pg_log日志文件以查找 primary／mirror
+ 失败的原因。如果没有找到意外的错误，请运行gprecoverseg程序恢复。
+\end_layout
+
+\begin_layout Itemize
+检查处于re-syncing 的segments。如果返回任何行，则应该生成警告或警报。 推荐频率：每5到10分钟运行一次。严重性：重要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE mode = 'r';
+\end_layout
+
+\end_inset
+
+当此查询返回行时，这意味着Segment正在重新同步。 如果状态没有从'r'更改为's'，那么请检查受影响Segment的primary／mirror的pg_l
+og文件是否有错误。
+\end_layout
+
+\begin_layout Itemize
+检查Segment的角色变化。如果找到任何Segment，则集群可能不平衡。 如果返回任何行，则应生成警告或警报。 推荐频率：每5到10分钟运行一次。严重性：重
+要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT * FROM gp_segment_configuration 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE preferred_role <> role;
+\end_layout
+
+\end_inset
+
+当段不以其首选角色运行时，主机在每个主机上的主节点数量不均匀，这意味着处理是偏斜的。 等待一个运维窗口，重新启动数据库，使Segment 角色还原。
+\end_layout
+
+\begin_layout Itemize
+运行分布式查询来测试它在所有Segment上运行。 应为每个主要部分返回一行。 推荐频率：每5到10分钟运行一次。严重性：关键。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT gp_segment_id, count(*) 
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM gp_dist_random('pg_class') 
+\end_layout
+
+\begin_layout Plain Layout
+
+GROUP BY 1;
+\end_layout
+
+\end_inset
+
+如果此查询失败，查询派送到群集中某些Segment时出现的问题。 这是一个罕见的事件。 检查无法发送的主机，以确保没有硬件或网络问题。
+\end_layout
+
+\begin_layout Itemize
+测试Master镜像的状态。 如果该值不是“STREAMING”，请提醒或警告。 推荐频率：每5到10分钟运行一次。严重性：重要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+psql dbname -c 'SELECT procpid, state 
+\end_layout
+
+\begin_layout Plain Layout
+
+FROM pg_stat_replication;' 
+\end_layout
+
+\end_inset
+
+检查Master和Standby的pg_log文件是否有错误。 如果没有意外的错误，并且机器启动，请运行gpinitstandby。
+\end_layout
+
+\begin_layout Itemize
+检查Master是否启动并正常运行。 推荐频率：每5到10分钟运行一次。严重性：关键。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT count(*) FROM gp_segment_configuration; 
+\end_layout
+
+\end_inset
+
+如果此查询失败，Master可能 Down。 再次尝试几次，然后手动检查Master。 如果失败，请重新启动主机，以确保主动主机上不保留进程，然后激活Stand
+by。
+\end_layout
+
+\begin_layout Section
+日志监控
+\end_layout
+
+\begin_layout Itemize
+检查集群的FATAL和ERROR日志消息。 推荐频率：每15分钟一次。严重性：警告。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SELECT * FROM log_alert_history 
+\end_layout
+
+\begin_layout Plain Layout
+
+WHERE logseverity in ('FATAL', 'ERROR')    
+\end_layout
+
+\begin_layout Plain Layout
+
+AND logtime > (now() - interval '15 minutes');
+\end_layout
+
+\end_inset
+
+向DBA发送警报以分析警报
+\end_layout
+
+\begin_layout Section
+硬件和操作系统监控
+\end_layout
+
+\begin_layout Itemize
+底层平台检查硬件或系统故障。 推荐频率：实时，或每15分钟。严重性：关键。如果需要，请从群集中删除机器以解决硬件和操作系统问题，然后将其添加回群集并运行gpre
+coverseg。
+\end_layout
+
+\begin_layout Itemize
+检查用于数据库数据存储和操作系统的磁盘空间使用情况。 推荐频率：每5到30分钟。 严重性：关键。
+\end_layout
+
+\begin_layout Itemize
+检查网络接口上的错误或丢包。 推荐频率：小时，严重性：重要。
+\end_layout
+
+\begin_layout Itemize
+检查RAID错误或RAID性能降低。 推荐频率：每5分钟一次。 严重性：关键。
+\end_layout
+
+\begin_layout Itemize
+运行 gpcheck程序来测试集群的配置。 推荐频率：创建群集或将新机器添加到群集时。严重性：重要。
+\end_layout
+
+\begin_layout Itemize
+检查是否有足够的I / O带宽，是否有倾斜。 推荐频率：创建群集时或怀疑有硬件问题时。
+\end_layout
+
+\begin_layout Section
+监控系统字典目录
+\end_layout
+
+\begin_layout Itemize
+运行目录一致性检查，以确保集群中每个主机上的目录一致，处于良好状态。 推荐频率：每周。严重性：重要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Run the gpcheckcat utility in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gpcheckcat -O
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+运行 persistent 表目录检查。 推荐频率：每月。 严重性：关键
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+During a downtime, with no users on the system, 
+\end_layout
+
+\begin_layout Plain Layout
+
+run the gpcheckcat utility in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gpcheckcat -R persistent
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+检查不符的pg_attribute条目的pg_class条目。 推荐频率：每月。 严重性：重要
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+During a downtime, with no users on the system, 
+\end_layout
+
+\begin_layout Plain Layout
+
+run the gpcheckcat utility in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gpcheckcat -R pgclass
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+检查泄漏的临时模式和缺少模式定义。 推荐频率：每月。 严重性：重要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+During a downtime, with no users on the system, 
+\end_layout
+
+\begin_layout Plain Layout
+
+run the gpcheckcat utility in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gpcheckcat -R namespace
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+检查随机分布表的约束。 推荐频率：每月。 严重性：重要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+During a downtime, with no users on the system, 
+\end_layout
+
+\begin_layout Plain Layout
+
+run the gpcheckcat utility in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gpcheckcat -R distribution_policy
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+检查不存在对象的依赖关系。 推荐频率：每月。 严重性：重要。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+During a downtime, with no users on the system, 
+\end_layout
+
+\begin_layout Plain Layout
+
+run the gpcheckcat utility in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+gpcheckcat -R dependency
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+数据运维
+\end_layout
+
+\begin_layout Itemize
+检查表上缺少的统计信息。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Check the gp_stats_missing view in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+SELECT * FROM gp_toolkit.gp_stats_missing;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+检查在常规VACUUM命令无法恢复的数据文件中有膨胀（死空间）的表。 推荐频率：每周或每月。 严重性：警告。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Check the gp_bloat_diag view in each database: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+SELECT * FROM gp_toolkit.gp_bloat_diag;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+数据库运维
+\end_layout
+
+\begin_layout Itemize
+标记删除堆表中的行，以便它们占用的空间可以重复使用。 推荐频率：每日。 严重性：关键。
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Vacuum user tables: 
+\end_layout
+
+\begin_layout Plain Layout
+
+VACUUM <table>;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+更新表统计信息。 推荐频率：加载数据后执行查询。 严重性：关键
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Analyze user tables.
+ You can use the analyzedb 
+\end_layout
+
+\begin_layout Plain Layout
+
+management utility: 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+analyzedb -d <database> -a
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+备份数据库数据。 推荐频率：每日或根据备份计划的要求.
+ 严重性：关键
+\end_layout
+
+\begin_layout Subsection
+OS, 数据库升级，补丁。
+\end_layout
+
+\end_body
+\end_document

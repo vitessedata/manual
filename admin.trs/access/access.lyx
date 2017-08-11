@@ -1,0 +1,618 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass ctex-book
+\begin_preamble
+% 如果没有这一句命令，XeTeX会出错，原因参见
+% http://bbs.ctex.org/viewthread.php?tid=60547
+\DeclareRobustCommand\nobreakspace{\leavevmode\nobreak\ }
+\end_preamble
+\options UTF8
+\use_default_options true
+\maintain_unincluded_children false
+\language chinese-simplified
+\language_package none
+\inputencoding utf8-plain
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format pdf4
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 0
+\use_package mhchem 1
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\listings_params "basicstyle={\ttfamily}"
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part
+管理数据库访问
+\end_layout
+
+\begin_layout Chapter
+配置客户端验证 
+\end_layout
+
+\begin_layout Standard
+本主题介绍如何配置客户端连接和DEEPGREEN数据库的身份验证。
+\end_layout
+
+\begin_layout Standard
+当首次初始化数据库系统时，系统有一个预定义的超级用户角色。 此角色的名称与初始化数据库系统的操作系统用户名称相同。 默认称为gpadmin。 默认情况下，系统配
+置为仅允许gpadmin从本地连接数据库。 要允许任何其他角色连接或允许来自远程主机的连接，请配置数据库以允许此类连接。
+\end_layout
+
+\begin_layout Section
+允许连接到数据库
+\end_layout
+
+\begin_layout Standard
+客户端访问和身份验证由标准的基于PostgreSQL主机的身份验证文件pg_hba.conf控制。Master的pg_hba.conf文件控制数据库系统的客户端访问
+和身份验证。 Segment 的 pg_hba.conf文件配置为仅允许来自主主机的客户端连接，并且从不接受客户端连接。
+\end_layout
+
+\begin_layout Standard
+有关详细信息，请参阅PostgreSQL文档中的pg_hba.conf文件。
+\end_layout
+
+\begin_layout Standard
+pg_hba.conf文件的一般格式是一组记录，每行一个。空格行和＃注释字符后面的任何文本都将被忽略。第一个匹配记录用于认证。第一个匹配后，后面的记录将不起作用。
+如果客户端无法使用第一个匹配记录中指定的方法进行身份验证，则连接被拒绝。记录由空格和/或制表符分隔的多个字段组成。如果字段值被引用，则字段可以包含空格。每个远程
+客户端访问记录具有以下格式：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+host   database   role   CIDR-address   
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+       authentication-method 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+本地使用Unix Domain Socket 记录为如下格式 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+local   database   role   authentication-method
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+各个字段意义如下，
+\end_layout
+
+\begin_layout Description
+local 匹配使用UNIX Domain Socket 的连接尝试。 没有这种类型的记录，不允许使用UNIX domain socket连接。
+\end_layout
+
+\begin_layout Description
+host 匹配使用TCP / IP进行的连接尝试。 远程TCP / IP连接需要服务器以适配 listen_addresses参数。
+\end_layout
+
+\begin_layout Description
+database 指定此记录匹配的数据库名称。 值all指定它匹配所有数据库。 可以使用逗号分隔多个数据库名称。 可以使用@前面的文件名指定包含数据库名称的单独
+文件。
+\end_layout
+
+\begin_layout Description
+role 指定此记录匹配的数据库角色名称。 值all指定它匹配所有角色。 如果指定的角色是一个组，并且希望包含该组的所有成员，则在角色名称之前加一个+。
+ 可以用逗号分隔多个角色名称。 可以通过使用@之前的文件名指定包含角色名称的单独文件。
+\end_layout
+
+\begin_layout Description
+CIDR-address 指定此记录匹配的客户端计算机IP地址范围。 它包含标准点分十进制格式的IP地址和CIDR掩码长度。 IP地址只能以数字方式指定，而不能
+作为域或主机名。 掩码长度表示必须匹配的客户端IP地址的高位数。 该位右侧的位必须在给定的IP地址为零。 IP地址，/和CIDR掩码长度之间不能有空格。
+ 对于单个主机，CIDR地址的典型示例为192.0.2.89/32，对于小型网络为192.0.2.0/24，较大的为10.6.0.0/16。 要指定单个主机，请使用32的CIDR
+掩码作为IPv4或128用于IPv6。 在网络地址中，不要忽略尾随零。
+\end_layout
+
+\begin_layout Description
+
+\series bold
+authentication-method 验证方式。 
+\end_layout
+
+\begin_layout Subsection
+例子
+\end_layout
+
+\begin_layout Enumerate
+修改$MASTER_DATA_DIRECTORY/pg_hba.conf
+\end_layout
+
+\begin_layout Enumerate
+一个例子，
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# allow the gpadmin user local access to all databases  
+\end_layout
+
+\begin_layout Plain Layout
+
+# using ident authentication 
+\end_layout
+
+\begin_layout Plain Layout
+
+local   all   gpadmin   ident         sameuser 
+\end_layout
+
+\begin_layout Plain Layout
+
+host    all   gpadmin   127.0.0.1/32  ident 
+\end_layout
+
+\begin_layout Plain Layout
+
+host    all   gpadmin   ::1/128       ident 
+\end_layout
+
+\begin_layout Plain Layout
+
+# allow the 'dba' role access to any database from any  
+\end_layout
+
+\begin_layout Plain Layout
+
+# host with IP address 192.168.x.x and use md5 encrypted  
+\end_layout
+
+\begin_layout Plain Layout
+
+# passwords to authenticate the user 
+\end_layout
+
+\begin_layout Plain Layout
+
+# Note that to use SHA-256 encryption, replace md5 with  
+\end_layout
+
+\begin_layout Plain Layout
+
+# password in the line below 
+\end_layout
+
+\begin_layout Plain Layout
+
+host    all   dba   192.168.0.0/32  md5 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+gpstop -u 
+\end_layout
+
+\begin_layout Section
+限制并发连接
+\end_layout
+
+\begin_layout Standard
+如果需要限制数据库系统的并发会话数，可以配置max_connections服务器配置参数。 这是一个本地参数，这意味着必须在master，standby
+ master和每个segment（primary和mirror）的postgresql.conf文件里设置。 Segment上max_connections的值
+应为Master的值的5-10倍。
+\end_layout
+
+\begin_layout Standard
+设置max_connections时，还必须设置相关参数max_prepared_transactions。 该值必须至少与Master上max_connect
+ions的值一样大，并且Segment上设置为与Master相同的值。 
+\end_layout
+
+\begin_layout Subsection
+例子
+\end_layout
+
+\begin_layout Itemize
+$MASTER_DATA_DIRECTORY/postgresql.conf 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+max_connections=100 
+\end_layout
+
+\begin_layout Plain Layout
+
+max_prepared_transactions=100 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+SEGMENT_DATA_DIRECTORY/postgresql.conf 
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+max_connections=500 
+\end_layout
+
+\begin_layout Plain Layout
+
+max_prepared_transactions=100
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+加密客户端/服务器连接
+\end_layout
+
+\begin_layout Standard
+启用客户端连接到数据库的SSL，以加密在客户端和数据库之间通过网络传递的数据。
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN 数据库支持客户端和主服务器之间的SSL连接。 SSL连接阻止第三方窥探数据包，也可以防止中间人发生攻击。当客户端连接经过不安全的链接时，应使
+用SSL，并且必须在使用客户端证书身份验证时使用SSL。
+\end_layout
+
+\begin_layout Standard
+要启用SSL，需要在客户端和主服务器系统上安装OpenSSL。 DEEPGREEN数据库可以通过在master postgresql.conf中设置服务器配置参数
+ssl = on来启用SSL。当以SSL模式启动时，服务器将在主数据目录中查找文件server.key（服务器私钥）和server.crt（服务器证书）。在启用启用
+SSL的DEEPGREEN数据库系统启动之前，必须正确设置这些文件。
+\end_layout
+
+\begin_layout Chapter
+管理角色和权限
+\end_layout
+
+\begin_layout Standard
+DeepGreen 数据库授权机制在数据库中存储访问数据库对象的角色和权限，并使用SQL语句或命令进行管理。
+\end_layout
+
+\begin_layout Standard
+DeepGreen 数据库使用角色管理数据库访问权限。角色的概念包含用户和组的概念。角色可以是数据库用户，组或两者同时。角色可以拥有数据库对象（例如表），并可以
+将这些对象的权限分配给其他角色，以控制对对象的访问。角色可以是其他角色的成员，因此成员角色可以继承其父角色的对象权限。
+\end_layout
+
+\begin_layout Standard
+每个数据库系统都包含一组数据库角色（用户和组）。这些角色与由服务器运行的操作系统管理的用户不同。但是，为方便起见，您可能希望维护操作系统用户名和数据库角色名称之
+间对应，因为许多客户端应用程序使用当前的操作系统用户名作为默认值。
+\end_layout
+
+\begin_layout Standard
+在DeepGreen数据库中，用户通过Master登录并连接，然后验证其角色和访问权限。然后，Master将当前登录的角色向Segment发出命令。
+\end_layout
+
+\begin_layout Standard
+角色是系统级别定义，这意味着它们对系统中的所有数据库都有效。
+\end_layout
+
+\begin_layout Standard
+为了引导数据库系统，一个新初始化的系统总是包含一个预定义的超级用户角色（也称为系统用户）。此角色的名称与初始化数据库系统的操作系统用户名称相同。通常这个角色命名
+为gpadmin。
+\end_layout
+
+\begin_layout Section
+角色和权限的安全最佳做法
+\end_layout
+
+\begin_layout Itemize
+保护gpadmin系统用户。 DeepGreen 需要一个UNIX用户标识来安装和初始化数据库系统。该系统用户在文档中安习惯称为gpadmin。该gpadmin
+用户是数据库中的默认数据库超级用户，以及安装的文件系统所有者及其底层数据文件的拥有者。此默认管理员帐户对数据库十分重要， 没有它系统无法运行，并且数据库无法限制
+此gpadmin用户标识的访问。请使用角色来管理具有特定用途的访问数据库的人员，只使用gpadmin帐户进行系统维护任务，如扩展和升级。
+\end_layout
+
+\begin_layout Itemize
+为了记录和审核目的，允许登录到Greenplum数据库的每个用户都应该被赋予自己的数据库角色。对于应用程序或Web服务，请考虑为每个应用程序或服务创建不同的角色
+。 
+\end_layout
+
+\begin_layout Itemize
+使用组来管理访问权限。查看角色会员资格。 
+\end_layout
+
+\begin_layout Itemize
+限制拥有SUPERUSER角色属性的用户。作为超级用户的角色绕过了数据库中的所有访问权限检查，以及资源排队。只有系统管理员才应该获得超级用户权限。
+\end_layout
+
+\begin_layout Section
+创建新角色（用户）
+\end_layout
+
+\begin_layout Standard
+用户级角色被认为是可以登录数据库并启动数据库会话的数据库角色。 因此，使用CREATE ROLE命令创建新的用户级角色时，必须指定LOGIN权限。
+ 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# CREATE ROLE jsmith WITH LOGIN;
+\end_layout
+
+\end_inset
+
+数据库角色可能有许多属性可以定义角色可以在数据库中执行哪些任务。 您可以在创建角色时，或以后使用ALTER ROLE命令来设置这些属性。例如，
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith WITH PASSWORD 'passwd123'; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE admin VALID UNTIL 'infinity'; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith LOGIN; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith RESOURCE QUEUE adhoc; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE jsmith DENY DAY 'Sunday';
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+角色还可以为许多服务器配置设置提供角色特定的默认值。 例如，要为角色设置默认模式搜索路径：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# ALTER ROLE admin SET search_path TO myschema, public;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+角色会员资格
+\end_layout
+
+\begin_layout Standard
+将用户组合在一起以简化对象特权的管理是非常方便的：这样，可以授予组中的整体权限或撤销权限。 在数据库中，可以通过创建代表组的角色，然后将组角色中的成员资格授予单
+个用户角色来完成。
+\end_layout
+
+\begin_layout Standard
+使用CREATE ROLE SQL命令创建一个新的组角色。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# CREATE ROLE admin CREATEROLE CREATEDB;
+\end_layout
+
+\end_inset
+
+一旦组角色存在，您可以使用GRANT和REVOKE命令添加和删除成员（用户角色）。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# GRANT admin TO john, sally; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# REVOKE admin FROM bob;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+对于管理对象权限，您将仅向组级角色授予适当权限。 成员用户角色继承组角色的对象权限。 例如：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=# GRANT ALL ON TABLE mytable TO admin; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# GRANT ALL ON SCHEMA myschema TO admin; 
+\end_layout
+
+\begin_layout Plain Layout
+
+=# GRANT ALL ON DATABASE mydb TO admin;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+LOGIN，SUPERUSER，CREATEDB，CREATEROLE，CREATEEXTTABLE和RESOURCE QUEUE的角色属性从不作为数据库对象的
+普通权限继承。 用户成员必须实际将SET ROLE设置为具有这些属性之一的特定角色才能使用该属性。 在上面的例子中，我们给了CREATEDB和CREATEROL
+E给管理角色。 如果sally是admin的成员，她可以发出以下命令来承担父角色的角色属性：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+=> SET ROLE admin;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+模拟行和列级访问控制
+\end_layout
+
+\begin_layout Standard
+DEEPGREEN不支持行级或列级访问限制，也没有标记安全性。 可以使用视图来模拟行级和列级访问，以限制所选列和/或行。 可以通过向表中添加额外的列来存储灵敏度
+信息，然后使用视图来控制基于此列的行级访问来模拟行级标签。 然后将视图而不是基表的权限授予角色。
+\end_layout
+
+\begin_layout Section
+加密数据
+\end_layout
+
+\begin_layout Standard
+DeepGreen 数据库包含一个名为pgcrypto的可选加密/解密函数包。 pgcrypto函数允许数据库管理员以加密形式存储某些数据列。
+ 这为敏感数据增加了一个额外的保护层，因为没有加密密钥的任何人都无法读取数据库中存储的数据，也不能直接从磁盘中读出非加密原文。
+\end_layout
+
+\begin_layout Section
+数据库中的密码
+\end_layout
+
+\begin_layout Standard
+在其默认配置中，DEEPGREEN 将登录用户密码的MD5哈希值保存在pg_authid系统目录中，而不是保存明文密码。 任何能够查看pg_authid表的人都
+可以看到哈希字符串，但没有密码。 这也可以确保将数据库转储到备份文件时，密码被隐藏。
+\end_layout
+
+\begin_layout Standard
+密码可以使用SHA-256散列算法而不是默认的MD5散列算法进行散列。 该算法产生一个以字符sha256为前缀的64字节十六进制字符串。
+\end_layout
+
+\begin_layout Standard
+要启用SHA-256散列，请将password_hash_algorithm配置参数从默认值md5更改为sha-256。 该参数可以在全局或会话级设置。
+ 要全局设置password_hash_algorithm，请在shell中以gpadmin用户身份执行这些命令：
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gpconfig -c password_hash_algorithm -v 'sha-256' 
+\end_layout
+
+\begin_layout Plain Layout
+
+$ gpstop -u
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+虽然SHA-256使用更强大的加密算法，并产生较长的散列字符串，但不能与MD5认证方法一起使用。 要使用SHA-256密码散列，必须在pg_hba.conf配置文
+件中将验证方法设置为password，以便将明文密码发送到Greenplum数据库。 因为明文密码通过网络发送，所以使用SHA-256时，使用SSL进行客户端连
+接是非常重要的。 另一方面，默认的md5身份验证方法在将密码发送到Greenplum数据库之前先将其密码两次，一次使用密码和角色名称，然后再次使用客户端和服务器
+之间共享的盐值，因此明文密码永远不会 在网络上发送。
+\end_layout
+
+\end_body
+\end_document
