@@ -79,7 +79,7 @@
 \begin_body
 
 \begin_layout Part
-DEEPGREEN 安装
+TRS Crystal 安装
 \end_layout
 
 \begin_layout Chapter
@@ -88,11 +88,11 @@ DEEPGREEN 安装
 
 \begin_layout Standard
 本章中的命令有些必须以root身份或通过sudo执行。在行命令下，如果shell提示符是#，表示需以root执行，如果shell提示符是$, 表示需要以
- DEEPGREEN 安装用户 （假定 gpadmin）身份执行。
+ TRS Crystal 安装用户 （假定 gpadmin）身份执行。
 \end_layout
 
 \begin_layout Section
-安装DEEPGREEN系统需求
+安装TRS Crystal系统需求
 \end_layout
 
 \begin_layout Standard
@@ -424,11 +424,11 @@ Ethernet
 \end_layout
 
 \begin_layout Section
-DEEPGREEN操作系统进行配置
+TRS Crystal操作系统进行配置
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 需要对操作系统进行如下配置。如无特别指出，需要在集群中所有机器上配置执行。所有命令都需要以root身份，或者通过 sudo.
+TRS Crystal 需要对操作系统进行如下配置。如无特别指出，需要在集群中所有机器上配置执行。所有命令都需要以root身份，或者通过 sudo.
  设置后系统可能需要重启方生效。
 \end_layout
 
@@ -713,17 +713,17 @@ RemoveIPC=no
 \end_layout
 
 \begin_layout Subsection
-在MASTER上安装DEEPGREEN
+在MASTER上安装TRS Crystal
 \end_layout
 
 \begin_layout Standard
-首先创建DEEPGREEN用户，假设用户名为 gpadmin。 按照操作系统，选取下载 deepgreendb.XXX.bin。以 gpadmin
+首先创建TRS Crystal用户，假设用户名为 gpadmin。 按照操作系统，选取下载 TRS Crystaldb.XXX.bin。以 gpadmin
  用户的身份执行安装文件
 \begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-DEEPGREEN不支持以root身份安装
+TRS Crystal不支持以root身份安装
 \end_layout
 
 \end_inset
@@ -738,12 +738,12 @@ status open
 
 \begin_layout Plain Layout
 
-$ bash ./deepgreendb.XXX.bin
+$ bash ./TRS Crystaldb.XXX.bin
 \end_layout
 
 \begin_layout Plain Layout
 
-$ source ./deepgreendb/greenplum_path.sh
+$ source ./TRS Crystaldb/greenplum_path.sh
 \end_layout
 
 \end_inset
@@ -752,7 +752,7 @@ $ source ./deepgreendb/greenplum_path.sh
 \end_layout
 
 \begin_layout Subsection
-在SEGMENT上安装，配置DEEPGREEN
+在SEGMENT上安装，配置TRS Crystal
 \end_layout
 
 \begin_layout Standard
@@ -834,7 +834,7 @@ status open
 
 \begin_layout Plain Layout
 
-# source deepgreendb/greenplum_path.sh
+# source TRS Crystaldb/greenplum_path.sh
 \end_layout
 
 \begin_layout Plain Layout
@@ -863,7 +863,7 @@ status open
 
 \begin_layout Plain Layout
 
-# source deepgreendb/greenplum_path.sh
+# source TRS Crystaldb/greenplum_path.sh
 \end_layout
 
 \begin_layout Plain Layout
@@ -990,7 +990,7 @@ Run as root to sync clock.
 \end_layout
 
 \begin_layout Standard
-有关如何创建，请参考gpinitsystem文档 一个cluster.conf配置文件。 DEEPGREEN 建议数据库 Encoding 使用UTF-8，
+有关如何创建，请参考gpinitsystem文档 一个cluster.conf配置文件。 TRS Crystal 建议数据库 Encoding 使用UTF-8，
  COLLATION 使用 C。
 \end_layout
 
@@ -1036,14 +1036,14 @@ export MASTER_DATA_DIRECTORY=/data/master/dg-1
 \end_layout
 
 \begin_layout Standard
-我们建议在所有数据库中建立DEEPGREEN扩展功能，并创建一个默认用户数据库。
+我们建议在所有数据库中建立TRS Crystal扩展功能，并创建一个默认用户数据库。
 \begin_inset listings
 inline false
 status open
 
 \begin_layout Plain Layout
 
-We suggest setup DEEPGREEN extensions to all database, run
+We suggest setup TRS Crystal extensions to all database, run
 \end_layout
 
 \begin_layout Plain Layout

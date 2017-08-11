@@ -79,7 +79,7 @@
 \begin_body
 
 \begin_layout Title
-DEEPGREEN 数据库使用手册
+TRS Crystal 数据库使用手册
 \end_layout
 
 \begin_layout Standard
@@ -108,7 +108,7 @@ LatexCommand tableofcontents
 \end_layout
 
 \begin_layout Part
-DEEPGREEN 概念和构架
+TRS Crystal 概念和构架
 \end_layout
 
 \begin_layout Part*
@@ -116,8 +116,8 @@ DEEPGREEN 概念和构架
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 是一个无共享 （Shared Nothing）、 大规模并行处理 （Massively Parallel Processing，
- MPP）的数据库软件产品。 DEEPGREEN 基于开源的 GREENPLUM 数据库基础上，继承拥有GREENPLUM 所有的功能和优点。
+TRS Crystal 是一个无共享 （Shared Nothing）、 大规模并行处理 （Massively Parallel Processing，
+ MPP）的数据库软件产品。 TRS Crystal 基于开源的 GREENPLUM 数据库基础上，继承拥有GREENPLUM 所有的功能和优点。
 \end_layout
 
 \begin_layout Itemize
@@ -149,7 +149,7 @@ DEEPGREEN 是一个无共享 （Shared Nothing）、 大规模并行处理 （Ma
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN在此基础上增加了以下多项重要先进技术，大幅度提高系统性能和功能。
+TRS Crystal在此基础上增加了以下多项重要先进技术，大幅度提高系统性能和功能。
 \end_layout
 
 \begin_layout Itemize
@@ -177,14 +177,14 @@ MPP 构架
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 采用无共享构架，数据可分布到多个节点。 各节点 （SEGMENT） 拥有自己的CPU，内存，和存储。查询时各节点同时执行，数据通过网络交换。
+TRS Crystal 采用无共享构架，数据可分布到多个节点。 各节点 （SEGMENT） 拥有自己的CPU，内存，和存储。查询时各节点同时执行，数据通过网络交换。
  
 \end_layout
 
 \begin_layout Standard
-客户通过MASTER接入集群。 DEEPGREEN 支持 psql, JDBC, ODBC 等各种常见客户端。 SQL 在MASTER进行优化，分配到各个
+客户通过MASTER接入集群。 TRS Crystal 支持 psql, JDBC, ODBC 等各种常见客户端。 SQL 在MASTER进行优化，分配到各个
  SEGMENT。 数据存储在各个SEGMENT中， MASTER并不存用户数据，而只存系统字典。查询优化后在SEGMENT中执行，最终结果由MASTER返回给
-客户端。做为并行数据库，DEEPGREEN 的MASTER和SEGMENT之间使用二阶段提交 （TWO PHASE COMMIT， 2PC），保证并发和事务性。
+客户端。做为并行数据库，TRS Crystal 的MASTER和SEGMENT之间使用二阶段提交 （TWO PHASE COMMIT， 2PC），保证并发和事务性。
 \begin_inset Float figure
 wide false
 sideways false
@@ -223,12 +223,12 @@ MPP构架
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 支持数据并行加载。 用户可以使用外部表连接 gpfdist server 或 XDrive 在各个SEGMENT上并行加载数据。
+TRS Crystal 支持数据并行加载。 用户可以使用外部表连接 gpfdist server 或 XDrive 在各个SEGMENT上并行加载数据。
  并行加载数据不通过MASTER，达到最大利用网络带宽，没有网络瓶颈。 
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 支持容错，具有好的高可用性。MASTER， SEGMENT都可以建立镜像。 当MASTER或SEGMENT节点发生故障时，DEEPGREEN
+TRS Crystal 支持容错，具有好的高可用性。MASTER， SEGMENT都可以建立镜像。 当MASTER或SEGMENT节点发生故障时，TRS Crystal
  支持自动切换。
 \end_layout
 
@@ -237,13 +237,13 @@ XDrive
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 增加了XDrive云存储共享的功能。 XDrive 使DEEPGREEN集群和云存储逻辑上实现分离，这样，多个DEEPGREEN集群可以同时
-对云存储中一份数据进行读，写操作， 节省存储空间并实现高效数据分享。 同时逻辑上分离保证DEEPGREEN的计算能力和云存储可以实现独立扩展，
+TRS Crystal 增加了XDrive云存储共享的功能。 XDrive 使TRS Crystal集群和云存储逻辑上实现分离，这样，多个TRS Crystal集群可以同时
+对云存储中一份数据进行读，写操作， 节省存储空间并实现高效数据分享。 同时逻辑上分离保证TRS Crystal的计算能力和云存储可以实现独立扩展，
  针对用户实际情况，增加计算节点或增大存储空间。
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 和 XDrive之间使用了高效，并行，可扩展的协议。各个SEGMENT 和 XDrive 独立并行通信，没有网络瓶颈。 用户的SQL
+TRS Crystal 和 XDrive之间使用了高效，并行，可扩展的协议。各个SEGMENT 和 XDrive 独立并行通信，没有网络瓶颈。 用户的SQL
  查询可以下推到XDrive 中，最大限度减少数据在网络传输。
 \end_layout
 

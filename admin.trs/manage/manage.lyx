@@ -79,11 +79,11 @@
 \begin_body
 
 \begin_layout Part
-管理 DEEPGREEN 集群
+管理 TRS Crystal 集群
 \end_layout
 
 \begin_layout Standard
-在这个部分我们讲述DEEPGREEN系统管理员日常操作。
+在这个部分我们讲述TRS Crystal系统管理员日常操作。
 \end_layout
 
 \begin_layout Chapter
@@ -91,7 +91,7 @@
 \end_layout
 
 \begin_layout Standard
-除非特别说明，本章中的命令都是由DEEPGREEN 用户（习惯上使用 gpadmin) 在MASTER上运行。这个用户应该 source greenplum_p
+除非特别说明，本章中的命令都是由TRS Crystal 用户（习惯上使用 gpadmin) 在MASTER上运行。这个用户应该 source greenplum_p
 ath.sh 并设定 MASTER_DATA_DIRECTORY 环境变量。
 \end_layout
 
@@ -110,7 +110,7 @@ status open
 
 \begin_layout Plain Layout
 
-Start Deepgreen database
+Start TRS Crystal database
 \end_layout
 
 \begin_layout Plain Layout
@@ -124,7 +124,7 @@ $ gpstart
 
 \begin_layout Plain Layout
 
-Stop then restart Deepgreen database
+Stop then restart TRS Crystal database
 \end_layout
 
 \begin_layout Plain Layout
@@ -249,7 +249,7 @@ $ gpstop -mr
 \end_layout
 
 \begin_layout Standard
-客户端应该总是和MASTER建立会话。DEEPGREEN SEGMENT不能和客户端连接。客户端需要设定以下参数，这些参数如果没有设定，将会从客户的环境变量中获
+客户端应该总是和MASTER建立会话。TRS Crystal SEGMENT不能和客户端连接。客户端需要设定以下参数，这些参数如果没有设定，将会从客户的环境变量中获
 取。
 \end_layout
 
@@ -411,7 +411,7 @@ Host name
 \begin_inset Text
 
 \begin_layout Plain Layout
-DEEPGREEN Master hostname
+TRS Crystal Master hostname
 \end_layout
 
 \end_inset
@@ -449,7 +449,7 @@ Port
 \begin_inset Text
 
 \begin_layout Plain Layout
-DEEPGREEN Master 端口
+TRS Crystal Master 端口
 \end_layout
 
 \end_inset
@@ -528,11 +528,11 @@ OS Username
 \end_layout
 
 \begin_layout Itemize
-DEEPGREEN 支持使用 libpq 的程序，如数据库自带的客户端 psql。
+TRS Crystal 支持使用 libpq 的程序，如数据库自带的客户端 psql。
 \end_layout
 
 \begin_layout Itemize
-DEEPGREEN 支持常见接口 JDBC， ODBC。 所有使用这些接口的程序都可以连接DEEPGREEN。
+TRS Crystal 支持常见接口 JDBC， ODBC。 所有使用这些接口的程序都可以连接TRS Crystal。
 \end_layout
 
 \begin_layout Itemize
@@ -544,7 +544,7 @@ DEEPGREEN 支持常见接口 JDBC， ODBC。 所有使用这些接口的程序�
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 预装如下常用客户端应用或管理程序。
+TRS Crystal 预装如下常用客户端应用或管理程序。
 \end_layout
 
 \begin_layout Description
@@ -584,7 +584,7 @@ vacuumdb 回收数据库存储空间，分析数据库统计信息
 \end_layout
 
 \begin_layout Standard
-所有这些程序都可以使用 -d, -h, -p, -U 或环境变量设定数据库名，host， 端口， 用户名这些连接参数。根据DEEPGREEN 连接设置，用户可能
+所有这些程序都可以使用 -d, -h, -p, -U 或环境变量设定数据库名，host， 端口， 用户名这些连接参数。根据TRS Crystal 连接设置，用户可能
 需要提供密码，或设置 ~/.pgpass文件。以 psql 为例，
 \end_layout
 
@@ -637,7 +637,7 @@ gpdatabase=>
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 支持如下 API。 一般来说，DEEPGREEN 客户端协议与 PostgreSQL 一致。 对不同接口，客户端需要下载，安装驱动程序。
+TRS Crystal 支持如下 API。 一般来说，TRS Crystal 客户端协议与 PostgreSQL 一致。 对不同接口，客户端需要下载，安装驱动程序。
 \end_layout
 
 \begin_layout Standard
@@ -889,11 +889,11 @@ max_connections值，那么SEGMENT上这个值也应该相应增大。
 \end_layout
 
 \begin_layout Chapter
-DEEPGREEN 配置
+TRS Crystal 配置
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 的系统配置文件存在各个节点数据目录中。DEEPGREEN的配置参数分两种， local和MASTER的： 每个SEGMENT和MASTER都
+TRS Crystal 的系统配置文件存在各个节点数据目录中。TRS Crystal的配置参数分两种， local和MASTER的： 每个SEGMENT和MASTER都
 需要尊从 postgresql.conf 里的local 参数，而只有MASTER才读取postgresql.conf里的MASTER参数，并在查询执行时将参数传给
 每个SEGMENT。
 \end_layout
@@ -1099,7 +1099,7 @@ $ gpconfig --show max_connections
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 提供几种可选的高可用功能以应对不同的失败情况。 通过不同的冗余设计来保证系统使用， 以及失败后在可预期的时间内修复。
+TRS Crystal 提供几种可选的高可用功能以应对不同的失败情况。 通过不同的冗余设计来保证系统使用， 以及失败后在可预期的时间内修复。
 \end_layout
 
 \begin_layout Subsection
@@ -1115,7 +1115,7 @@ SEGMENT 镜像
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 数据存在多个SEGMENT里。 使用SEGMENT镜像时，每个SEGMENT都有 primary 或 mirror 一对镜像。
+TRS Crystal 数据存在多个SEGMENT里。 使用SEGMENT镜像时，每个SEGMENT都有 primary 或 mirror 一对镜像。
  每对镜像运行在不同的机器上，存储完全相同的数据。 镜像可以在系统初始化时在gpinitsystem 或 gpexpand 时设置。
 \end_layout
 
@@ -1176,7 +1176,7 @@ Master 镜像
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 的Postgres进程生成一个叫 ftsprobe 的子进程来检测失效。ftsprobe 定时扫描整个集群来检测失败的节点。
+TRS Crystal 的Postgres进程生成一个叫 ftsprobe 的子进程来检测失效。ftsprobe 定时扫描整个集群来检测失败的节点。
  管理员可以指定扫描的频率。ftsprobe 不能连接到一个segment的时候，将这个segment 在系统表里的状态置为 down。 这个segment
  的状态会一直是 down，直至管理员修复。
 \end_layout
@@ -1195,7 +1195,7 @@ Backup/Restore
 \end_layout
 
 \begin_layout Standard
-定时使用 gpcrondump 来 backup数据库可保护数据。分离的，异地的，安全存储是数据安全的一个重要的设计考虑。DEEPGREEN 支持对
+定时使用 gpcrondump 来 backup数据库可保护数据。分离的，异地的，安全存储是数据安全的一个重要的设计考虑。TRS Crystal 支持对
  append-optimized 表进行增量backup。 对于heap表，只支持全表的backup。详细情况请看后面专门论述。
 \end_layout
 
@@ -1204,7 +1204,7 @@ Backup/Restore
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN系统的镜像既可以在初始化(gpinitsystem)时配置，也可以在现有的系统上重 新配置(gpaddmirrors和gpinitstandb
+TRS Crystal系统的镜像既可以在初始化(gpinitsystem)时配置，也可以在现有的系统上重 新配置(gpaddmirrors和gpinitstandb
 y)。本节讲述对于初始化时没有配置Mirror的系统 如何添加Mirror。 
 \end_layout
 
@@ -1213,7 +1213,7 @@ y)。本节讲述对于初始化时没有配置Mirror的系统 如何添加Mirro
 \end_layout
 
 \begin_layout Standard
-Segment Mirror允许在Primary失效时切换到Mirror。DEEPGREEN 缺省设置是在primary同一组机器上配置Mirror。还可以选择
+Segment Mirror允许在Primary失效时切换到Mirror。TRS Crystal 缺省设置是在primary同一组机器上配置Mirror。还可以选择
 与primary完全不同的一组机器来配置Mirror Segment。
 \end_layout
 
@@ -1250,7 +1250,7 @@ $ gpaddmirrors -p 10000
 \end_layout
 
 \begin_layout Enumerate
-确保DEEPGREEN软件已经在所有主机上安装
+确保TRS Crystal软件已经在所有主机上安装
 \end_layout
 
 \begin_layout Enumerate
@@ -1377,7 +1377,7 @@ $ gpaddmirrors -i mirror_config_file
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN Master 的Standby既可以在初始化(gpinitsystem)时配置，也可以在现有的系 统上配置(gpinitstandby)。
+TRS Crystal Master 的Standby既可以在初始化(gpinitsystem)时配置，也可以在现有的系 统上配置(gpinitstandby)。
 \end_layout
 
 \begin_layout Standard
@@ -1385,7 +1385,7 @@ DEEPGREEN Master 的Standby既可以在初始化(gpinitsystem)时配置，也可
 \end_layout
 
 \begin_layout Enumerate
-确保Standby主机已经正确的安装配置DEEPGREEN软件，创建gpadmin用户。
+确保Standby主机已经正确的安装配置TRS Crystal软件，创建gpadmin用户。
 \end_layout
 
 \begin_layout Enumerate
@@ -1432,7 +1432,7 @@ $ psql dbname -c 'SELECT procpid, state
 \end_layout
 
 \begin_layout Standard
-如果开启了Mirror，在Primary失败时DEEPGREEN将自动切换到Mirror。通常Segment失败对于用户来说影响不大。如果在失败发生时，一个事务
+如果开启了Mirror，在Primary失败时TRS Crystal将自动切换到Mirror。通常Segment失败对于用户来说影响不大。如果在失败发生时，一个事务
 正在进行，该事务会被回滚，然后会在Segment自动重启后重试该事务。 这种情况管理员应设置监控，报警系统及时发现。
 \end_layout
 
@@ -2185,7 +2185,7 @@ Backup/Restore
 \end_layout
 
 \begin_layout Standard
-本章讲述DEEPGREEN的数据备份与恢复。定期备份数据库，在系统失败或者数据损坏时可以使用备份来恢复重建。另外还可以使用备份来把一个集群迁移到另外一个集群。
+本章讲述TRS Crystal的数据备份与恢复。定期备份数据库，在系统失败或者数据损坏时可以使用备份来恢复重建。另外还可以使用备份来把一个集群迁移到另外一个集群。
 \end_layout
 
 \begin_layout Section
@@ -2193,7 +2193,7 @@ Backup/Restore
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN提供了并行和非并行的Backup/Restore。 显然，并行方式没有瓶颈，扩展性好。
+TRS Crystal提供了并行和非并行的Backup/Restore。 显然，并行方式没有瓶颈，扩展性好。
 \end_layout
 
 \begin_layout Subsection
@@ -2201,7 +2201,7 @@ DEEPGREEN提供了并行和非并行的Backup/Restore。 显然，并行方式�
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN提供了一个并行备份命令gpcrondump。该命令同时备份Master和所有的Segment。该命令缺省设置在 db_dumps目录里创建备份
+TRS Crystal提供了一个并行备份命令gpcrondump。该命令同时备份Master和所有的Segment。该命令缺省设置在 db_dumps目录里创建备份
 文件。 在Master上，该命令创建的数个备份文件包含DDL语句和系统表等元数据。在Segment上，只创建一个数据文件。(比如gp_segment_confi
 guration)。所有一次的备份文件通过一个14位数字的时间戳来识别。 gprestore 可以并行从备份文件中恢复数据库。
 \end_layout
@@ -2291,7 +2291,7 @@ status collapsed
 \begin_layout Standard
 用户仍然可以使用常规的PostgreSQL备份命令pg_dump和pg_dumpall。PostgreSQL的 备份工具将在Master主机上创建一个大的备份文
 件，包含所有SEGMENT的数据。这样的做法比并行方法慢很多。很多时候，Master主机上没有足够的磁盘空间来存储数据库的全部数据。pg_restore
- 可以恢复pg_dump和pg_dumpall产生的数据。 注意这个方法建立的表丢掉了原来表的分布信息。 DEEPGREEN会创建一个缺省的分布。
+ 可以恢复pg_dump和pg_dumpall产生的数据。 注意这个方法建立的表丢掉了原来表的分布信息。 TRS Crystal会创建一个缺省的分布。
  这可能不是最优的分布。
 \end_layout
 
@@ -3460,7 +3460,7 @@ psql test_restore -f schema_path_and_seq_next_val
 \end_layout
 
 \begin_layout Standard
-数据仓储随时间会曾长。 有时侯数个数仓需要整合成一个较大的集群。新的业务也有可能需要增加硬件能力，比如为分析业务增加CPU。 DEEPGREEN支持在线扩容，系
+数据仓储随时间会曾长。 有时侯数个数仓需要整合成一个较大的集群。新的业务也有可能需要增加硬件能力，比如为分析业务增加CPU。 TRS Crystal支持在线扩容，系
 统的服务在最大程度上不受影响。 扩容过程透明，容易理解。 扩容过程中镜像等高可用系统正常工作，整个系统保持好的容错，可靠性。
 \end_layout
 
@@ -3505,7 +3505,7 @@ psql test_restore -f schema_path_and_seq_next_val
 \end_layout
 
 \begin_layout Enumerate
-安装，配置DEEPGREEN软件。
+安装，配置TRS Crystal软件。
 \end_layout
 
 \begin_layout Enumerate
@@ -3714,7 +3714,7 @@ status collapsed
 \begin_inset Text
 
 \begin_layout Plain Layout
-在新的主机上安装DEEPGREEN
+在新的主机上安装TRS Crystal
 \end_layout
 
 \end_inset
@@ -4339,7 +4339,7 @@ ZLIB压缩AO表比非压缩AO表的重分布明显慢，可能会慢80%。
 \end_layout
 
 \begin_layout Standard
-首先确认新节点已经安装配置好。已安装DEEPGREEN，SSH互信，性能测试合格。 首先只测试新节点，然后新节点和已有节点一 起测试。 一般来说，建议在网络环境
+首先确认新节点已经安装配置好。已安装TRS Crystal，SSH互信，性能测试合格。 首先只测试新节点，然后新节点和已有节点一 起测试。 一般来说，建议在网络环境
 发生变化或者任何系统环境发生变化时都应该执行性能测试。
 \end_layout
 
@@ -4592,7 +4592,7 @@ gpssh-exkeys会检查远程主机并在所有主机之间执行密钥交换。�
 \end_layout
 
 \begin_layout Standard
-使用gpcheck命令来检查所有新Segment主机，确保其OS设置符合DEEPGREEN运行的要求。
+使用gpcheck命令来检查所有新Segment主机，确保其OS设置符合TRS Crystal运行的要求。
 \end_layout
 
 \begin_layout Subsection
@@ -5362,7 +5362,7 @@ $ gpexpand -c
 \end_layout
 
 \begin_layout Standard
-gptransfer 可以把一个DEEPGREEN数据库中的数据，元数据迁移到另一个数据库里。它支持全库迁移和指定表的迁移。源数据库和目标数据库可以在同一个或不
+gptransfer 可以把一个TRS Crystal数据库中的数据，元数据迁移到另一个数据库里。它支持全库迁移和指定表的迁移。源数据库和目标数据库可以在同一个或不
 同的集群里。 数据通过gpfdist在各个Segment间并行传输。
 \end_layout
 
@@ -5863,7 +5863,7 @@ gptransfer在传输数据之前创建表索引。这会减慢数据传输，因�
 \end_layout
 
 \begin_layout Standard
-和其他的数据库软件一样 DEEPGREEN 需要一些定期的维护任务以达到最佳性能。这里讨论的任务是必要的，但管理员可以使用标准的UNIX工具如cron脚本来调度
+和其他的数据库软件一样 TRS Crystal 需要一些定期的维护任务以达到最佳性能。这里讨论的任务是必要的，但管理员可以使用标准的UNIX工具如cron脚本来调度
 。管理员应确保它们成功的执行。 
 \end_layout
 
@@ -5872,7 +5872,7 @@ Vacuum和Analyze
 \end_layout
 
 \begin_layout Standard
-由于DEEPGREEN使用的是MVCC事务并发模型，被删除或更新的数据行依然占据着物理 磁盘空间。如果数据库有大量的更新和删除， 会产生大量过期记录。VACUM
+由于TRS Crystal使用的是MVCC事务并发模型，被删除或更新的数据行依然占据着物理 磁盘空间。如果数据库有大量的更新和删除， 会产生大量过期记录。VACUM
 M会回收空间。 同时 VACUUM还会收集表级别的统计信息，如数据行数，因此对于AO表VACUUM也是有必要的 。VACUUM对于AO表的操作很快，因为其没有空
 间需要被回收。VACUUM AO表时，如果过期的数据比例少于一个值 （缺省10），那么不会重整。 无论值为何，VACUUM FULL总会重整。
  
@@ -5884,7 +5884,7 @@ M会回收空间。 同时 VACUUM还会收集表级别的统计信息，如数�
 
 \begin_layout Standard
 MVCC事务依赖于事务ID(XID)的数字以确定其他事务的可见性。但是事务ID的值是有限的，长时间(超过2B个事务)运行，系统将会出现事务ID循环的问题。为了避
-免这个问题，在每个数据库每2B个事务的时候，需要对每张表执行VACUUM。长时间不运行VACUUM，DEEPGREEN会报警， 
+免这个问题，在每个数据库每2B个事务的时候，需要对每张表执行VACUUM。长时间不运行VACUUM，TRS Crystal会报警， 
 \begin_inset listings
 inline false
 status open
@@ -5905,7 +5905,7 @@ WARNING: database "database_name" must be vacuumed
 \end_layout
 
 \begin_layout Standard
-如果不进行VACUUM， DEEPGREEN会发布如下错误以防止数据丢失。 
+如果不进行VACUUM， TRS Crystal会发布如下错误以防止数据丢失。 
 \begin_inset listings
 inline false
 status open
@@ -6030,7 +6030,7 @@ analyzedb -s pg_catalog -d $DBNAME
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 根据数据库的统计信息使用基于成本的查询优化器。精确的统计信息使得优化器可以更好地评估选择性和检索的行数从而选择最有效的查询计划。
+TRS Crystal 根据数据库的统计信息使用基于成本的查询优化器。精确的统计信息使得优化器可以更好地评估选择性和检索的行数从而选择最有效的查询计划。
  ANALYZE 命令收集优化器需要用到的列统计信息。VACUUM和ANALYZE操作可以在同一个命令中一起运行。VACUUM ANALYZE。
 \end_layout
 
@@ -6047,7 +6047,7 @@ DEEPGREEN 根据数据库的统计信息使用基于成本的查询优化器。�
 \end_layout
 
 \begin_layout Standard
-数据库服务日志文件输出量很大，不需要无限期的保存这 些日志。管理员需要定期的滚动日志文件，启用新的日志文件，删除旧的日志文件。DEEPGREEN
+数据库服务日志文件输出量很大，不需要无限期的保存这 些日志。管理员需要定期的滚动日志文件，启用新的日志文件，删除旧的日志文件。TRS Crystal
  在Master和所有的Segment上都开启了日志文件滚动。每天的日志文件在数据目录的pg_log目录下。尽管日志是按天滚动的，但它们不会被自动清空或删除。管
 理员需要通过一些脚本或程序来定期的清理各实例pg_log目录下的旧日志文件。
 \end_layout
@@ -6061,7 +6061,7 @@ DEEPGREEN 根据数据库的统计信息使用基于成本的查询优化器。�
 \end_layout
 
 \begin_layout Standard
-为确保DEEPGREEN数据库集群的高可用性和一致性能, 我们而推荐的以下监视和维护工作。管理员可以定期执行，以确保系统的所有组件都能最佳地运行。
+为确保TRS Crystal数据库集群的高可用性和一致性能, 我们而推荐的以下监视和维护工作。管理员可以定期执行，以确保系统的所有组件都能最佳地运行。
  监控有助于您早日发现和诊断问题。 维护活动可帮助您保持系统的最新状态，避免性能下降。没有必要在每个集群中实施所有这些建议; 请根据的服务要求实施措施。
 \end_layout
 

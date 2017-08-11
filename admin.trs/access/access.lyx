@@ -87,7 +87,7 @@
 \end_layout
 
 \begin_layout Standard
-本主题介绍如何配置客户端连接和DEEPGREEN数据库的身份验证。
+本主题介绍如何配置客户端连接和TRS Crystal数据库的身份验证。
 \end_layout
 
 \begin_layout Standard
@@ -332,14 +332,14 @@ max_prepared_transactions=100
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 数据库支持客户端和主服务器之间的SSL连接。 SSL连接阻止第三方窥探数据包，也可以防止中间人发生攻击。当客户端连接经过不安全的链接时，应使
+TRS Crystal 数据库支持客户端和主服务器之间的SSL连接。 SSL连接阻止第三方窥探数据包，也可以防止中间人发生攻击。当客户端连接经过不安全的链接时，应使
 用SSL，并且必须在使用客户端证书身份验证时使用SSL。
 \end_layout
 
 \begin_layout Standard
-要启用SSL，需要在客户端和主服务器系统上安装OpenSSL。 DEEPGREEN数据库可以通过在master postgresql.conf中设置服务器配置参数
+要启用SSL，需要在客户端和主服务器系统上安装OpenSSL。 TRS Crystal数据库可以通过在master postgresql.conf中设置服务器配置参数
 ssl = on来启用SSL。当以SSL模式启动时，服务器将在主数据目录中查找文件server.key（服务器私钥）和server.crt（服务器证书）。在启用启用
-SSL的DEEPGREEN数据库系统启动之前，必须正确设置这些文件。
+SSL的TRS Crystal数据库系统启动之前，必须正确设置这些文件。
 \end_layout
 
 \begin_layout Chapter
@@ -347,11 +347,11 @@ SSL的DEEPGREEN数据库系统启动之前，必须正确设置这些文件。
 \end_layout
 
 \begin_layout Standard
-DeepGreen 数据库授权机制在数据库中存储访问数据库对象的角色和权限，并使用SQL语句或命令进行管理。
+TRS Crystal 数据库授权机制在数据库中存储访问数据库对象的角色和权限，并使用SQL语句或命令进行管理。
 \end_layout
 
 \begin_layout Standard
-DeepGreen 数据库使用角色管理数据库访问权限。角色的概念包含用户和组的概念。角色可以是数据库用户，组或两者同时。角色可以拥有数据库对象（例如表），并可以
+TRS Crystal 数据库使用角色管理数据库访问权限。角色的概念包含用户和组的概念。角色可以是数据库用户，组或两者同时。角色可以拥有数据库对象（例如表），并可以
 将这些对象的权限分配给其他角色，以控制对对象的访问。角色可以是其他角色的成员，因此成员角色可以继承其父角色的对象权限。
 \end_layout
 
@@ -361,7 +361,7 @@ DeepGreen 数据库使用角色管理数据库访问权限。角色的概念包�
 \end_layout
 
 \begin_layout Standard
-在DeepGreen数据库中，用户通过Master登录并连接，然后验证其角色和访问权限。然后，Master将当前登录的角色向Segment发出命令。
+在TRS Crystal数据库中，用户通过Master登录并连接，然后验证其角色和访问权限。然后，Master将当前登录的角色向Segment发出命令。
 \end_layout
 
 \begin_layout Standard
@@ -378,7 +378,7 @@ DeepGreen 数据库使用角色管理数据库访问权限。角色的概念包�
 \end_layout
 
 \begin_layout Itemize
-保护gpadmin系统用户。 DeepGreen 需要一个UNIX用户标识来安装和初始化数据库系统。该系统用户在文档中安习惯称为gpadmin。该gpadmin
+保护gpadmin系统用户。 TRS Crystal 需要一个UNIX用户标识来安装和初始化数据库系统。该系统用户在文档中安习惯称为gpadmin。该gpadmin
 用户是数据库中的默认数据库超级用户，以及安装的文件系统所有者及其底层数据文件的拥有者。此默认管理员帐户对数据库十分重要， 没有它系统无法运行，并且数据库无法限制
 此gpadmin用户标识的访问。请使用角色来管理具有特定用途的访问数据库的人员，只使用gpadmin帐户进行系统维护任务，如扩展和升级。
 \end_layout
@@ -559,7 +559,7 @@ status open
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN不支持行级或列级访问限制，也没有标记安全性。 可以使用视图来模拟行级和列级访问，以限制所选列和/或行。 可以通过向表中添加额外的列来存储灵敏度
+TRS Crystal不支持行级或列级访问限制，也没有标记安全性。 可以使用视图来模拟行级和列级访问，以限制所选列和/或行。 可以通过向表中添加额外的列来存储灵敏度
 信息，然后使用视图来控制基于此列的行级访问来模拟行级标签。 然后将视图而不是基表的权限授予角色。
 \end_layout
 
@@ -568,7 +568,7 @@ DEEPGREEN不支持行级或列级访问限制，也没有标记安全性。 可�
 \end_layout
 
 \begin_layout Standard
-DeepGreen 数据库包含一个名为pgcrypto的可选加密/解密函数包。 pgcrypto函数允许数据库管理员以加密形式存储某些数据列。
+TRS Crystal 数据库包含一个名为pgcrypto的可选加密/解密函数包。 pgcrypto函数允许数据库管理员以加密形式存储某些数据列。
  这为敏感数据增加了一个额外的保护层，因为没有加密密钥的任何人都无法读取数据库中存储的数据，也不能直接从磁盘中读出非加密原文。
 \end_layout
 
@@ -577,7 +577,7 @@ DeepGreen 数据库包含一个名为pgcrypto的可选加密/解密函数包。 
 \end_layout
 
 \begin_layout Standard
-在其默认配置中，DEEPGREEN 将登录用户密码的MD5哈希值保存在pg_authid系统目录中，而不是保存明文密码。 任何能够查看pg_authid表的人都
+在其默认配置中，TRS Crystal 将登录用户密码的MD5哈希值保存在pg_authid系统目录中，而不是保存明文密码。 任何能够查看pg_authid表的人都
 可以看到哈希字符串，但没有密码。 这也可以确保将数据库转储到备份文件时，密码被隐藏。
 \end_layout
 

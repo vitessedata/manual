@@ -79,7 +79,7 @@
 \begin_body
 
 \begin_layout Part
-DEEPGREEN 性能管理
+TRS Crystal 性能管理
 \end_layout
 
 \begin_layout Chapter
@@ -87,7 +87,7 @@ DEEPGREEN 性能管理
 \end_layout
 
 \begin_layout Standard
-管理系统性能包括衡量性能，确定性能问题的原因，以及应用可用的工具和技术来解决问题。DeepGreen根据数据库管理系统（DBMS）向请求者提供信息的速率来衡量数
+管理系统性能包括衡量性能，确定性能问题的原因，以及应用可用的工具和技术来解决问题。TRS Crystal根据数据库管理系统（DBMS）向请求者提供信息的速率来衡量数
 据库性能。
 \end_layout
 
@@ -188,7 +188,7 @@ http://www.tpc.org/tpch
 \end_layout
 
 \begin_layout Standard
-DeepGreen 数据库的性能取决于其运行的硬件和IT基础架构。 数据库集群由几个服务器（主机）组成; 作为诊断性能问题的第一步，确保所有的Segment都在
+TRS Crystal 数据库的性能取决于其运行的硬件和IT基础架构。 数据库集群由几个服务器（主机）组成; 作为诊断性能问题的第一步，确保所有的Segment都在
 线。 数据库的性能将由集群中最慢的主机决定。 CPU利用率，内存管理，I / O处理或网络负载的问题会影响性能。 常见的硬件相关问题是：
 \end_layout
 
@@ -243,7 +243,7 @@ UM。 gp_toolkit管理模式有许多视图用于检查分布式数据库对象�
 \end_layout
 
 \begin_layout Standard
-DeepGreen 数据库使用依赖于数据库统计信息的基于成本的查询优化器。 准确的统计信息允许查询优化器更好地估计查询获取的行数，以选择最有效的查询计划。
+TRS Crystal 数据库使用依赖于数据库统计信息的基于成本的查询优化器。 准确的统计信息允许查询优化器更好地估计查询获取的行数，以选择最有效的查询计划。
  没有数据库统计信息，查询优化器无法估计将返回多少条记录。 优化器不会假定它具有足够的内存来执行诸如聚合的某些操作，因此它采取最保守的操作，并通过从磁盘读写来执
 行这些操作。 这比使用内存慢得多。 可使用ANALYZE收集关于查询优化器需要的数据库的统计信息。
 \end_layout
@@ -359,7 +359,7 @@ ALTER TABLE sales ALTER COLUMN region SET STATISTICS 50;
 \end_layout
 
 \begin_layout Standard
-为了帮助优化数据库设计，请查看下表列出的DeepGreen支持的最大限制：
+为了帮助优化数据库设计，请查看下表列出的TRS Crystal支持的最大限制：
 \end_layout
 
 \begin_layout Standard
@@ -637,7 +637,7 @@ status open
 \end_layout
 
 \begin_layout Standard
-DeepGreen数据库工作负载管理可根据业务需求对查询进行优先级排序和分配资源，并防止在资源不足时启动查询。本节介绍了工作负载管理，并介绍了如何使用资源队列来
+TRS Crystal数据库工作负载管理可根据业务需求对查询进行优先级排序和分配资源，并防止在资源不足时启动查询。本节介绍了工作负载管理，并介绍了如何使用资源队列来
 管理资源。使用资源队列，可以将可用的内存和CPU资源分配给在数据库系统上执行的不同类型的查询。您可以限制并发查询的数量，用于执行查询的内存量，以及用于处理查询的
 CPU的相对数量。
 \end_layout
@@ -761,7 +761,7 @@ Segment主机内存
 \end_layout
 
 \begin_layout Standard
-应该始终将vm.overcommit_memory内核参数设置为2，这是DeepGreen数据库的唯一安全值。
+应该始终将vm.overcommit_memory内核参数设置为2，这是TRS Crystal数据库的唯一安全值。
 \end_layout
 
 \begin_layout Standard
@@ -771,7 +771,7 @@ vm.overcommit_ratio内核参数设置用于应用程序进程的RAM百分比，�
 \end_layout
 
 \begin_layout Standard
-要计算vm.overcommit_ratio的安全值，首先使用以下公式确定可用于DeepGreen数据库进程的总内存（称为gp_vmem）：
+要计算vm.overcommit_ratio的安全值，首先使用以下公式确定可用于TRS Crystal数据库进程的总内存（称为gp_vmem）：
 \begin_inset listings
 inline false
 status open
@@ -2155,7 +2155,7 @@ rqppriority列的值是当前的优先级。 您可以指定字符串值MAX，HI
 \end_layout
 
 \begin_layout Standard
-故障Segment可能会指示硬件故障，例如磁盘驱动器或网卡出现故障。 DeepGreen数据库提供了硬件验证工具gpcheckperf，以帮助识别具有硬件问题的
+故障Segment可能会指示硬件故障，例如磁盘驱动器或网卡出现故障。 TRS Crystal数据库提供了硬件验证工具gpcheckperf，以帮助识别具有硬件问题的
 Segment主机。
 \end_layout
 
@@ -2259,7 +2259,7 @@ SELECT * FROM gp_toolkit.gp_resqueue_status;
 \begin_layout Standard
 您可以使用系统监视实用程序（如ps，top，iostat，vmstat，netstat等）来监视集群中主机上的数据库活动。 这些工具可以帮助识别当前在系统上运行
 的数据库进程（postgres进程）以及关于CPU，内存，磁盘I / O或网络活动，资源密集型任务。 查看这些系统统计信息，以识别通过重载系统并消耗过多资源来降
-低数据库性能的查询。 DeepGreen 的管理工具gpssh允许您同时在多台主机上运行这些系统监视命令。
+低数据库性能的查询。 TRS Crystal 的管理工具gpssh允许您同时在多台主机上运行这些系统监视命令。
 \end_layout
 
 \begin_layout Standard
@@ -2343,7 +2343,7 @@ gpssh -f seg_hosts_file -e '
 
 \begin_layout Plain Layout
 
-    source  ~/deepgreendb/greenplum_path.sh;
+    source  ~/TRS Crystaldb/greenplum_path.sh;
 \end_layout
 
 \begin_layout Plain Layout

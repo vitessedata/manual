@@ -91,7 +91,7 @@
 \end_layout
 
 \begin_layout Standard
-数据库中的使用数据定义语言（DDL）创建和管理数据库对象。DEEPGREEN 的数据库，Schema， 等于PostgreSQL并没有不同。但表的DDL与Pos
+数据库中的使用数据定义语言（DDL）创建和管理数据库对象。TRS Crystal 的数据库，Schema， 等于PostgreSQL并没有不同。但表的DDL与Pos
 tgreSQL比较，有更多的选项和功能。我们仅描述创建，管理表。
 \end_layout
 
@@ -100,7 +100,7 @@ tgreSQL比较，有更多的选项和功能。我们仅描述创建，管理表�
 \end_layout
 
 \begin_layout Standard
-DeepGreen数据库表与任何关系数据库中的表相似，只是表行分布在系统中的Segment。 创建表时，可以指定表的分发策略。CREATE TABLE命令创建一
+TRS Crystal数据库表与任何关系数据库中的表相似，只是表行分布在系统中的Segment。 创建表时，可以指定表的分发策略。CREATE TABLE命令创建一
 个表并定义其结构。 创建表时，您可以定义：
 \end_layout
 
@@ -151,7 +151,7 @@ DeepGreen数据库表与任何关系数据库中的表相似，只是表行分�
 \end_layout
 
 \begin_layout Standard
-您可以在列和表上定义约束以限制表中的数据。 DeepGreen 数据库支持的约束与PostgreSQL相同，但有一些限制，包括：
+您可以在列和表上定义约束以限制表中的数据。 TRS Crystal 数据库支持的约束与PostgreSQL相同，但有一些限制，包括：
 \end_layout
 
 \begin_layout Itemize
@@ -215,7 +215,7 @@ DDL允许有FOREIGN KEY约束，但并不强制。
 \end_layout
 
 \begin_layout Standard
-默认情况下，DeepGreen 数据库使用与PostgreSQL相同的堆存储模型。 堆表存储最适合使用OLTP类型的工作负载，其中数据在初始加载后经常被修改。
+默认情况下，TRS Crystal 数据库使用与PostgreSQL相同的堆存储模型。 堆表存储最适合使用OLTP类型的工作负载，其中数据在初始加载后经常被修改。
  UPDATE和DELETE操作需要存储行级版本信息，以确保可靠的数据库事务处理。 堆表最适合于较小的表，它们在最初加载之后经常更新。
 \end_layout
 
@@ -234,7 +234,7 @@ AO表存储最适合数据仓库环境中的事实表。 事实表通常是系�
 \end_layout
 
 \begin_layout Standard
-DeepGreen 提供行存，列存或两者的组合。 
+TRS Crystal 提供行存，列存或两者的组合。 
 \end_layout
 
 \begin_layout Itemize
@@ -275,7 +275,7 @@ DeepGreen 提供行存，列存或两者的组合。
 \end_layout
 
 \begin_layout Standard
-在DeepGreen数据库中AO表可有两种类型的压缩：
+在TRS Crystal数据库中AO表可有两种类型的压缩：
 \end_layout
 
 \begin_layout Itemize
@@ -287,7 +287,7 @@ DeepGreen 提供行存，列存或两者的组合。
 \end_layout
 
 \begin_layout Standard
-DeepGreen 支持 ZLIB， LZ4， ZSTD 压缩算法。相比，LZ4 最快，但压缩比不如ZLIB和ZSTD。 ZSTD 和 ZLIB压缩比类似，但Z
+TRS Crystal 支持 ZLIB， LZ4， ZSTD 压缩算法。相比，LZ4 最快，但压缩比不如ZLIB和ZSTD。 ZSTD 和 ZLIB压缩比类似，但Z
 STD要更快。
 \end_layout
 
@@ -574,7 +574,7 @@ GRANT SELECT ON sales TO guest;
 \end_layout
 
 \begin_layout Standard
-表分区可以支持非常大的表，例如事实表，通过逻辑上将它们分割成更小，更易于管理的部分。 分区表可以通过允许DeepGreen查询优化器仅扫描满足给定查询所需的数据
+表分区可以支持非常大的表，例如事实表，通过逻辑上将它们分割成更小，更易于管理的部分。 分区表可以通过允许TRS Crystal查询优化器仅扫描满足给定查询所需的数据
 ，而不是扫描大表的所有内容，从而提高查询性能。
 \end_layout
 
@@ -583,12 +583,12 @@ GRANT SELECT ON sales TO guest;
 \end_layout
 
 \begin_layout Standard
-分区不会改变数据在Segment上的分布。 无论是否分区，DeepGreen都将表分布到所有的Segment上以启用并行查询处理。 表分区逻辑上划分大表，以提高
+分区不会改变数据在Segment上的分布。 无论是否分区，TRS Crystal都将表分布到所有的Segment上以启用并行查询处理。 表分区逻辑上划分大表，以提高
 查询性能，并帮助数据仓库维护任务，例如将旧数据从数据仓库中滚出。
 \end_layout
 
 \begin_layout Standard
-DeepGreen支持：
+TRS Crystal支持：
 \end_layout
 
 \begin_layout Itemize
@@ -638,8 +638,8 @@ status open
 \end_layout
 
 \begin_layout Standard
-DeepGreen DDL使用PARTITION BY（和可选的SUBPARTITION BY）子句在CREATE TABLE期间对表进行分区。分区创建一个或多
-个级别的子表（或子表）的顶级（或父级）表。在内部，DeepGreen 数据库创建了顶层表与其底层分区之间的继承关系.分区标准来创建具有不同CHECK约束的分区，限
+TRS Crystal DDL使用PARTITION BY（和可选的SUBPARTITION BY）子句在CREATE TABLE期间对表进行分区。分区创建一个或多
+个级别的子表（或子表）的顶级（或父级）表。在内部，TRS Crystal 数据库创建了顶层表与其底层分区之间的继承关系.分区标准来创建具有不同CHECK约束的分区，限
 制表可以包含的数据。查询优化器使用CHECK约束来确定要扫描的表分区。
 \end_layout
 
@@ -2235,12 +2235,12 @@ RENAME PARTITION yr_1 TO  yr_1_ext ;
 \end_layout
 
 \begin_layout Standard
-本节中的主题描述了将数据加载和写入数据库，和如何将数据导出。DeepGreen 支持高性能并行数据加载和卸载，并且对于较少量的数据，单文件，非并行数据导入和导出
+本节中的主题描述了将数据加载和写入数据库，和如何将数据导出。TRS Crystal 支持高性能并行数据加载和卸载，并且对于较少量的数据，单文件，非并行数据导入和导出
 。
 \end_layout
 
 \begin_layout Standard
-DeepGreen 可以读取和写入多种类型的外部数据源，包括文本文件，HDFS等。 
+TRS Crystal 可以读取和写入多种类型的外部数据源，包括文本文件，HDFS等。 
 \end_layout
 
 \begin_layout Itemize
@@ -2253,7 +2253,7 @@ COPY SQL命令在主主机上的外部文本文件和数据库表之间传输数
 \end_layout
 
 \begin_layout Itemize
-gpfdist是并行文件分发程序。它允许DeepGreen数据库段从多个文件系统并行加载外部数据。可以在不同的主机和网络接口上运行gpfdist的多个实例，并且
+gpfdist是并行文件分发程序。它允许TRS Crystal数据库段从多个文件系统并行加载外部数据。可以在不同的主机和网络接口上运行gpfdist的多个实例，并且
 并行访问它们。 
 \end_layout
 
@@ -2279,7 +2279,7 @@ QL命令中的常规数据库表一起使用，并与其他表一起使用。 �
 \end_layout
 
 \begin_layout Standard
-DeepGreen 支持可读和可写的外部表，
+TRS Crystal 支持可读和可写的外部表，
 \end_layout
 
 \begin_layout Itemize
@@ -2296,7 +2296,7 @@ file:// 协议
 \end_layout
 
 \begin_layout Standard
-file：//协议用于指定操作系统文件位置的URI。 URI包括文件的主机名，端口和路径。 每个文件必须驻留在可由DeepGreen超级用户（gpadmin）访
+file：//协议用于指定操作系统文件位置的URI。 URI包括文件的主机名，端口和路径。 每个文件必须驻留在可由TRS Crystal超级用户（gpadmin）访
 问的主机上。 URI中使用的主机名必须与gp_segment_configuration系统目录表中注册的Segment主机名称相匹配。
 \end_layout
 
@@ -2347,7 +2347,7 @@ FORMAT 'CSV' (HEADER);
 \end_layout
 
 \begin_layout Standard
-LOCATION子句中指定的URI数量决定并行工作以访问外部表的Segment数。 对于每个URI，DeepGreen将指定一个Segment。
+LOCATION子句中指定的URI数量决定并行工作以访问外部表的Segment数。 对于每个URI，TRS Crystal将指定一个Segment。
  为了在加载数据时获得最大的并行性，将数据分成与Segment相同数量的大小相同的文件。 这确保所有Segment参与负载。外部文件数不能超过Segment数。
  例如，如果集群每个Segment主机有四个Segment，则可以在每个Segment 主机上放置四个外部文件。 基于file：//协议的表只能是可读表。
  系统视图pg_max_external_files显示每个外部表允许多少文件。 该视图仅适用于file：//协议。 
@@ -2359,7 +2359,7 @@ gpfdist://协议
 
 \begin_layout Standard
 gpfdist：//协议的URI指向正在运行的gpfdist实例。 gpfdist实用程序从文件主机上的目录并行提供外部数据文件，输送到所有的Segment。
- DeepGreen 自带 gpfdist程序， 一般位于Master 和每个 Segment 主机上的$ GPHOME / bin目录中。
+ TRS Crystal 自带 gpfdist程序， 一般位于Master 和每个 Segment 主机上的$ GPHOME / bin目录中。
 \end_layout
 
 \begin_layout Standard
@@ -2633,7 +2633,7 @@ CREATE EXTERNAL TABLE定义必须具有正确的主机名，端口和gpfdist的�
 \end_layout
 
 \begin_layout Standard
-DeepGreen数据库包括HTTP请求标头中的X-GP-PROTO，以指示请求来自DeepGreen数据库。当使用gpfdist或gfdists协议读取或写入
+TRS Crystal数据库包括HTTP请求标头中的X-GP-PROTO，以指示请求来自TRS Crystal数据库。当使用gpfdist或gfdists协议读取或写入
 数据时，gpfdist实用程序会在请求标头中拒绝不包含X-GP-PROTO的HTTP请求。 如果在头部请求中未检测到X-GP-PROTO，则gpfist会在HT
 TP响应头的状态行中返回400错误：400无效请求（无gp-proto）
 \end_layout
@@ -3128,7 +3128,7 @@ TO '/home/gpadmin/a_list_countries.out';
 \end_layout
 
 \begin_layout Standard
-DEEPGREEN 输入数据行由LF字符（换行符0x0A），CR（回车符号0x0D）或CR后跟LF（CR + LF，0x0D 0x0A）分隔。
+TRS Crystal 输入数据行由LF字符（换行符0x0A），CR（回车符号0x0D）或CR后跟LF（CR + LF，0x0D 0x0A）分隔。
  LF是UNIX或类UNIX操作系统上的标准换行符表示。 Windows或Mac OS X等操作系统使用CR或CR + LF。 
 \end_layout
 
@@ -3381,14 +3381,14 @@ status open
 \end_layout
 
 \begin_layout Standard
-字符编码系统由一个代码组成，每个字符从一个字符集与一些其他的东西对齐，例如数字或八位字节序列，以便于数据传输和存储。 DeepGreen数据库支持各种字符集，包
+字符编码系统由一个代码组成，每个字符从一个字符集与一些其他的东西对齐，例如数字或八位字节序列，以便于数据传输和存储。 TRS Crystal数据库支持各种字符集，包
 括单字节字符集，如ISO 8859系列和多字节字符集，如EUC（扩展UNIX代码），UTF-8和Mule内部代码。服务器端字符集在数据库初始化期间定义，UTF-
 8是默认值，可以更改。客户端可以透明地使用所有受支持的字符集，但是不支持在服务器中使用一些字符集作为服务器端编码。当将数据加载或插入到数据库中时，DeepGre
-en将指定客户端编码的数据透明地转换为服务器编码。将数据发送回客户端时，DeepGreen 将数据从服务器字符编码转换为指定的客户端编码。
+en将指定客户端编码的数据透明地转换为服务器编码。将数据发送回客户端时，TRS Crystal 将数据从服务器字符编码转换为指定的客户端编码。
 \end_layout
 
 \begin_layout Standard
-数据文件必须是由DeepGreen数据库识别的字符编码。包含无效或不受支持的编码序列的数据文件在加载时报错。
+数据文件必须是由TRS Crystal数据库识别的字符编码。包含无效或不受支持的编码序列的数据文件在加载时报错。
 \end_layout
 
 \begin_layout Subsubsection
@@ -3420,15 +3420,15 @@ SET client_encoding TO 'latin1';
 \end_layout
 
 \begin_layout Standard
-首先，XDrive使DeepGreen集群能够访问存储在数据库外部的数据。 DeepGreen数据库使用外部表格接口传送XDrive。要访问数据，用户需要在XD
-rive配置中定义“mount point”。一个常见的情况是将XDrive安装在DeepGreen群集的相同节点中。然后，每个DeepGreen数据库段与在l
-ocalhost上运行的XDrive服务进行通信。 XDrive也可以在与DeepGreen群集完全不同的主机中运行。通过将XDrive与DeepGreen集群
-分离，我们可以在不同的DeepGreen集群之间共享XDrive服务，从而共享数据。
+首先，XDrive使TRS Crystal集群能够访问存储在数据库外部的数据。 TRS Crystal数据库使用外部表格接口传送XDrive。要访问数据，用户需要在XD
+rive配置中定义“mount point”。一个常见的情况是将XDrive安装在TRS Crystal群集的相同节点中。然后，每个TRS Crystal数据库段与在l
+ocalhost上运行的XDrive服务进行通信。 XDrive也可以在与TRS Crystal群集完全不同的主机中运行。通过将XDrive与TRS Crystal集群
+分离，我们可以在不同的TRS Crystal集群之间共享XDrive服务，从而共享数据。
 \end_layout
 
 \begin_layout Standard
 要访问外部数据源，必须通过XDrive来安装外部数据存储。 XDrive启动时从配置文件读取 mount point 设置。此时，XDrive支持安装存储在NF
-S，HDFS和AWS S3中的外部数据。 DeepGreen数据库使用外部表访问XDrive。支持外部表格的数据格式为CSV和SPQ。我们希望在下一个版本中发布
+S，HDFS和AWS S3中的外部数据。 TRS Crystal数据库使用外部表访问XDrive。支持外部表格的数据格式为CSV和SPQ。我们希望在下一个版本中发布
 更多的存储系统和更多数据格式的安装点类型。
 \end_layout
 
@@ -3605,7 +3605,7 @@ status open
 \end_layout
 
 \begin_layout Standard
-一个常用的配置是为DeepGreen集群的每个节点在 host 设置一个条。 假设您有一个2节点设置，其中主机是mdw，sdw1-1，sdw1-2，sdw2-1
+一个常用的配置是为TRS Crystal集群的每个节点在 host 设置一个条。 假设您有一个2节点设置，其中主机是mdw，sdw1-1，sdw1-2，sdw2-1
 ，sdw2-2，您可将设置主机配置如下：
 \begin_inset listings
 inline false
@@ -3754,7 +3754,7 @@ conf = "name_node=192.168.1.100, port=50070"
 \end_layout
 
 \begin_layout Standard
-您可以通过Deepgreen DB中提供的外部表格机制访问XDrive上的数据。 语法与其它外部表格基本相同。
+您可以通过TRS Crystal DB中提供的外部表格机制访问XDrive上的数据。 语法与其它外部表格基本相同。
 \begin_inset listings
 inline false
 status open
@@ -3785,7 +3785,7 @@ FORMAT ’CSV’ [csv options]
 \end_layout
 
 \begin_layout Standard
-XDrive目前支持两种格式：CSV和SPQ。 SPQ 是DeepGreen专有的高性能列存储格式。使用plugin系统后，我们支持在HDFS上的Parquet
+XDrive目前支持两种格式：CSV和SPQ。 SPQ 是TRS Crystal专有的高性能列存储格式。使用plugin系统后，我们支持在HDFS上的Parquet
 ， ORC文件。
 \end_layout
 
@@ -3924,8 +3924,8 @@ dg transfer
 \end_layout
 
 \begin_layout Standard
-dg transfer 是DeepGreen 数据库之间的高性能，可扩展的数据传输工具。 功能上大体与 gptransfer 类似，但性能要好很多。
- 要设置传输，用户应该已经启动源和目标DeepGreen群集。 dg传输需要一个xdrive集群，通常是在目标DeepGreen集群上启动的xdrive集群。
+dg transfer 是TRS Crystal 数据库之间的高性能，可扩展的数据传输工具。 功能上大体与 gptransfer 类似，但性能要好很多。
+ 要设置传输，用户应该已经启动源和目标TRS Crystal群集。 dg传输需要一个xdrive集群，通常是在目标TRS Crystal集群上启动的xdrive集群。
  请参考dg xdrive如何初始化，启动xdrive集群。 Dg传输还需要在源数据库中正确设置dg_utilts。 一旦正确设置，用户可以使用数据库传输。
 \begin_inset listings
 inline false
@@ -3954,7 +3954,7 @@ status open
 
 \begin_layout Description
 
--src.host Source deepgreen cluster connection 
+-src.host Source TRS Crystal cluster connection 
 \end_layout
 
 \begin_layout Description
@@ -3964,7 +3964,7 @@ status open
 
 \begin_layout Description
 
--src.port Source deepgreen cluster connection 
+-src.port Source TRS Crystal cluster connection 
 \end_layout
 
 \begin_layout Description
@@ -3974,7 +3974,7 @@ status open
 
 \begin_layout Description
 
--src.user Source deepgreen cluster connection 
+-src.user Source TRS Crystal cluster connection 
 \end_layout
 
 \begin_layout Description
@@ -3989,17 +3989,17 @@ status open
 
 \begin_layout Description
 
--dst.host Destination deepgreen cluster host.
+-dst.host Destination TRS Crystal cluster host.
 \end_layout
 
 \begin_layout Description
 
--dst.port Destination deepgreen cluster port.
+-dst.port Destination TRS Crystal cluster port.
 \end_layout
 
 \begin_layout Description
 
--dst.user Destination deepgreen cluster user name.
+-dst.user Destination TRS Crystal cluster user name.
 \end_layout
 
 \begin_layout Description
@@ -4019,7 +4019,7 @@ status open
 
 \begin_layout Description
 
-            destintion deepgreen cluster, user can 
+            destintion TRS Crystal cluster, user can 
 \end_layout
 
 \begin_layout Description
