@@ -1,0 +1,25 @@
+---
+title: "DeepgreenFAQ"
+author: "ftian"
+date: "December 7, 2018"
+output: 
+  html_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# On ubuntu, after turning on deepmesh, query hang.
+
+Most likely this is a network issue.   Especially, check /etc/hosts file on
+*EVERY* machine of the cluster to see if ubuntu has inserted an entry like
+```
+127.0.1.1 machine_host_name
+```
+
+See the [follwing link](https://www.debian.org/doc/manuals/debian-reference/ch05.en.html#_the_hostname_resolution) for reason of this weird entry.
+
+Remove it and replace it with the correct ip of the host.
+
