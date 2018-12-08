@@ -1,0 +1,53 @@
+---
+title: "Deepgreen 与 Greenplum 相比增加的功能"
+author: "ftian"
+date: "December 7, 2018"
+output:
+  html_document:
+    number_sections: yes
+  rticles::ctex:
+    number_sections: yes
+documentclass: ctexart
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Deepgreen 数据库相对 Greenplum 除了在性能上做了大量优化工作，也拓展了数据库的功能。  在架构层次，如果需要接入外部数据 （Kafka, Gemfire, FoundationDB, Elastic Searc h, HDFS, S3, 或用户需要定制开发)，请考虑使用 XDrive.  如果需要接入 AI/Deep Learning, Graph, Time Series 等算法或模型，那么应该使用 Transducer.   下面讲述的是其他一些新功能。
+
+# SQL 语法， 数据类型和函数
+## decimal64 和 decimal128 类型
+Deepgreen 实现了64位/128位的IEEE十进制小数类型， 可在金融领域应用中取代 Greenplum/PostgreSQL 的 numeric 类型。 decimal64可以精确表达16位有效数字，decimal128可以精确表达34位有效数字。 相比numeric类型，decimal64 和 decimal128 性能提高2-5倍，而且内存开销也小。
+
+## 更快的正则表达式
+实现了一组新的正则表达式函数，效率远高于原生的函数实现。
+
+## 新的压缩算法
+Deepgreen 支持 LZ4 和 ZSTD 压缩算法。
+
+## 新的存储格式 （V18）
+增加了一个新的存储格式 PAX。 如果客户采用SSD，PAX 是一种高性能，容易管理的格式。
+
+## limit sample
+增加了新语法， 对表或子查询进行随机抽样。
+```
+select * from T limit sample 100 rows;
+select * from T limit sample 10 percent;
+```
+
+## approximate_count_distinct 函数
+使用HLL近似计算 count distinct
+
+## streaming histogram 算法
+使用聚合函数， 以流计算的方式计算统计直方图，quantile 等。 只扫描表或子查询一遍，仅使用固定大小内存开销。
+
+## query hint (V18)
+以 query_hint 的方式控制单个查询的行为， 例如， 打开/关闭 ORCA。
+
+# 数据库管理工具
+## dg transfer
+在不同的数据库之间进行数据传输。  主要特点是高性能和灵活。  也可以用来对数据库，表进行备份。
+
+## dg sync
+不同集群之间进行数据同步，增量备份。  要求源数据库和目的数据库有同样数量的segment。  增量同步，而且源数据库不需要停机，不影响事物处理。  同步后目的数据库保证时间节点上事物一致性。 可以用来实现跨数据中心的实时在灾备。
