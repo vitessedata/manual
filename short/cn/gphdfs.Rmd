@@ -1,0 +1,100 @@
+---
+title: "Use gphdfs with Deepgreen"
+output:
+  rticles::ctex:
+    number_sections: yes
+  html_document:
+    number_sections: yes
+documentclass: ctexart
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Install hadoop
+Following instructions on hadoop site to install hadoop and hdfs.  I used the latest 2.9.2, which is the *latest, stable* release.  Note that Greemplum gphdfs officially support hadoop 2.x.  It is not clear if hadoop 3.x will work or not.   To set up a sane test/dev environment, the so called *Single cluster, pseudo-distributed mode* may be what you need.  To do that, you may need to change 
+```
+FILE: === etc/hadoop/core-site.xml ===
+<configuration>
+    <property>
+      <name>fs.defaulitFS</name>
+      <value>hdfs://localhost:9000</value>
+    </property>
+</configuration>
+    
+    
+FILE: === etc/hadoop/hdfs-site.xml ===
+<configuration>
+        <property>
+                <name>dfs.name.dir</name>
+                <value>/home/ftian/data/hadoop/nn</value>
+        </property>
+        <property>
+                <name>dfs.data.dir</name>
+                <value>/home/ftian/data/hadoop/dfs</value>
+        </property>
+        <property>
+                <name>dfs.replication</name>
+                <value>1</value>
+        </property>
+</configuration>
+
+FILE: === etc/hadoop/hadoop-env.sh ===
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+```
+Google is your friend.  All I can say, is that, Stockholm syndrome is common
+among hadoop users. 
+
+# Prepare data
+You can run dgtools tpch benchmark to generate tpch data.   The following will
+copy data into hdfs.   Suppose you cd into the hadoop installation dir,
+```
+bin/hdfs namenode -format
+sbin/start-dfs.sh
+
+bin/hdfs dfs -mkdir /tpch
+bin/hdfs dfs -copyFromLocal scale-1 /tpch
+bin/hdfs dfs -ls /tpch/scale-1/seg0
+bin/hdfs dfs -cat /tpch/scale-1/seg0/nation.tbl
+```
+If all goes well, cat should read nation.tbl.    You may see some strange message about 0.0.0.0 when start-dfs.sh.   If it failed, probably it is due to a stale entry in ~/.ssh/known_hosts.
+
+# STOP!  Make sure hdfs is working before moving on to gphdfs.
+
+# Setup gphdfs
+Next on all machines export the following shell env.
+```
+FILE: === ~/.bashrc ===
+export JAVA_HOME=...
+export HADOOP_HOME=...
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+```
+
+Fix the hadoop_env.sh shipped with deepgreen. 
+```
+FILE: === $GPHOME/lib/hadoop/hadoop_env.sh ===
+# Add this line
+export HADOOP_HOME=/path/to/hadoop/installation
+# Remove everything related to 
+# HADOOP_COMMON_HOME
+# For classpath section, basically only keep the hadoop2 part
+# remove all others.
+```
+
+# external table
+Now should be good.   Restart the database so that hadoop_env.sh will be loaded.
+```
+DROP EXTERNAL TABLE X_NATION;
+CREATE EXTERNAL TABLE X_NATION  ( N_NATIONKEY  INTEGER,
+                            N_NAME       VARCHAR(25),
+                            N_REGIONKEY  INTEGER,
+                            N_COMMENT    VARCHAR(152),
+                            DUMMY TEXT
+                        )
+LOCATION ('gphdfs://localhost:9000/tpch/scale-1/seg-0/nation.tbl')
+FORMAT 'CSV' (DELIMITER '|')
+;
+
+select * from X_NATION;
+```
