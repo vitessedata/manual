@@ -1,0 +1,43 @@
+---
+title: 'SmartXDrive: Query Execution in XDrive Plugin'
+author: "ftian"
+date: "January 17, 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+With Xilinx and SamSung Smart SSD, we may push certain query processing into the storage device.  The FPGA inside the SSD has massive bandwidth but the logic (LUT/DSP etc) has to be simple and easy to implement.  As a first product, we will assume data is in SPQ format and accessed via XDrive. 
+
+# Data Types
+
+Data in SPQ can be integer type (int32, int64), float (IEEE float and double), string (utf-8), or binary.  Date, timestamp types are stored as integer.   Other types are stored as string.   Deepgreen will translate postgres types into proper SPQ types.
+
+SmartXDrive will support simple arithmatics on int32/64, float32/64 and comparision on int/float/string/binary.  We should not require smartxdrive to understand things like encoding, collation, timezone, etc.   For example, deepgreen should translate date comparition into int comparison and SmartXDrive will deal with integer operations only.
+
+# Query Operators
+
+Deepgreen will push down query operators to a xdrive table scan.  The query operators can be a 
+
+1. A predicate in a conjunctive normal form.  Each clause should be some functions and a comparison as described in the previous section.
+2. A hash value constructed from columns, or simple experssions of columns/consts.   Fixed hash function -- CRC64 of a byte array using FoundationDB encoding.  The hash value then is evaluated against a bloom filter (included in the push down context)
+3. Simple Aggregate.  Group by a byte array, using FoundationDB encoding.   We will support some aggregation functions, count, min, max, avg, of a column or an expression computed from columns.   SmartXDrive does not need to finish the aggregate -- that is, it can just return the preaggregate result and let Deepgreen finish the combine phase.
+
+# Query Translation In Deepgreen
+Predicate, if can push down, should be.  Deepgreen does not need to push down ALL predicates, it can do further evaluation after data is returned from XDrive.
+
+Join, esp hash join, should push down a bloom filter.
+
+Aggregates, if can, should be.  Esp, here are some translations.
+
+1. If group by a complex expression, then we can add columns referenced in complex expression in the group by column.  Let Deepgreen eval the complex expression and combine.
+2. If have a complex aggregate, then we can add columns referenced in group by column and let Deepgreen eval and combine.
+3. No matter what, we expect deepgreen will run combine.
+
+
