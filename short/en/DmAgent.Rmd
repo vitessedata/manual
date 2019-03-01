@@ -1,0 +1,95 @@
+---
+title: "Deepmesh Agent and Agent Monitor" 
+author: "ftian"
+date: "December 7, 2018"
+output:
+  html_document:
+    number_sections: yes
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+This document is to describe how to intialize and use Deepmesh Agent, Deepmesh Configure
+Server, Xliw Agent with Agent Monitor process.  
+
+# Initialization
+
+Deepgreen ships with all necessary binaries.
+
+## TCP ports
+Before running any command, please make sure TCP port 4444 and 6789 are not used.
+TCP port 4444 is used by Deepmesh Agent to communicate with other agents.  6789 is
+used by Deepmesh configure server for Deepmesh Agent to get configuration.
+
+These two ports can be overwriten by change \$DGHOME/share/agents.conf.sample
+```
+[[agent]]
+name="cmcfgsvr"  # name of agent
+...
+argv=["agent: deepmesh config server","--dmport","4444","--svrport","6789"]
+...
+
+[[agent]]
+name="dmagent"   # name of agent
+...
+argv=["agent: deepmesh","--dmport","4444","--svrport","6789"]
+...
+```
+
+## Choose Agent Data Dir
+User must decide a data directory for agent, on all hosts.  If the dir does not exists, 
+installation/initialization will create it -- make sure user has priviledge in all hosts.
+
+## Fresh Installation with gpinitsystem
+Add the following line to cluster.conf
+```
+AGENTS_DATADIR=<agents_datadir>
+```
+Run gpinitsystem as before
+```
+gpinitsystem -c cluster.conf -h hostfile
+```
+
+## Upgrade existing system
+First, start database.   Run 
+```
+gpinitagent -d <agents_datadir>
+```
+to initialize agents, then gpstop stop database, and restart.
+
+## Verification
+Agent monitor and agents are integrated with Deepgreen's gpstart/gpstop commands.  
+Running gpstart/gpstop will start/stop agent monitor and deepmesh agent in each host.   
+Deepmesh Configure Servers runs in master only.   
+
+# Enable Deepmesh Interconnect
+Admin can enable deepmesh as interconnect.
+```
+gp_config -c gp_interconnect_type -v deepmesh
+```
+will update postgresql.conf in all segments.   Restart database then the cluster will
+use deepmesh interconnect.
+
+# Debugging
+* Log files are in \<agents\_datadir\>/log 
+* Initialization will copy \$DGHOME/share/agents.conf.sample to \<agents\_datadir\>/agents.conf of all hosts.
+* In agents.conf, one can add --log debug to argv
+* If agentmon process is killed/died, you have to restart it with gpstart/gpstop
+* Manual start/stop agentcon
+```
+gpagentmon -d <agents_datadir> -S -all     #stop all, must run from Master.
+gpagentmon -d <agents_datadir> -m <masterhost_ip> -M --all # start all agentmons, must run from Master.
+gpagentmon -d <agents_datadir> -S          # stop local agentmon
+gpagentmon -d <agents_datadir> -m <masterhost_ip>  # start (non-master) local agentmon
+gpagentmon -d <agents_datadir> -m <masterhost_ip> -M # start (master) local agentmon
+```
+
+
+
+
+
