@@ -2,9 +2,10 @@
 title: "DeepgreenFAQ"
 author: "ftian"
 date: "December 7, 2018"
-output: 
+output:
+  pdf_document: default
   html_document:
-    number_sections: true
+    number_sections: yes
 ---
 
 ```{r setup, include=FALSE}

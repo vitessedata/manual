@@ -43,8 +43,7 @@ FILE: === etc/hadoop/hdfs-site.xml ===
 FILE: === etc/hadoop/hadoop-env.sh ===
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ```
-Google is your friend.  All I can say, is that, Stockholm syndrome is common
-among hadoop users. 
+Google is your friend. 
 
 # Prepare data
 You can run dgtools tpch benchmark to generate tpch data.   The following will
