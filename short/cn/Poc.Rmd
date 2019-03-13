@@ -1,0 +1,154 @@
+---
+title: "PoC 功能/性能"
+author: "ftian"
+date: "December 7, 2018"
+output:
+  html_document:
+    number_sections: yes
+  rticles::ctex:
+    number_sections: yes
+documentclass: ctexart
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 安装
+首先正确安装配置 Deepgreen V18.  运行 
+```
+sudo pip2 install protobuf
+dg setup -all tpch
+```
+
+# 基本功能测试
+数据库需要支持行存储，列存储。 需要支持索引。  列存储需要支持多种压缩方式，特别，需要支持高速的压缩算法，如 lz4 和 quicklz.   测试方法可以使用 TPC-H 数据，列存/LZ4，测试全部的 22 个查询。
+
+# 常用的统计，字符串正则表达式等
+数据库需要能高效处理 IoT 应用里常见的统计功能和字符串正则表达式功能。  仍然以 TPC-H　数据为例，
+
+## 抽样
+```
+-- Sample 1000 rows from lineitem table.
+select * from lineitem limit sample 1000 rows;
+-- Sample 1000 rows with only returnflag = 'N'
+select * from lineitem where l_returnflag = 'N' limit sample 1000 rows;
+-- Sample 0.1 percent
+select * from lineitem where l_returnflag = 'N' limit sample 0.1 percent;
+-- Sample from result of a query
+select * from (
+    select l_orderkey, sum(l_quantity * l_extendedprice) 
+    from lineitem group by l_orderkey
+    ) tmpt limit sample 100 rows;
+```
+
+## 统计直方图
+```
+-- 
+-- Run histogram and display quantile (1/4) for 
+-- price * tax (total tax paid in $) on lineitem table. 
+--
+select streaming_histogram_quantile(hist, 0.25),
+       streaming_histogram_quantile(hist, 0.5),
+       streaming_histogram_quantile(hist, 0.75),
+       streaming_histogram_quantile(hist, 1) 
+from (
+       select streaming_histogram_build(l_extendedprice * l_tax) hist 
+       from lineitem
+) tmpt;
+
+--
+-- Run histogram and display bar height (as cdf)
+-- 
+select streaming_histogram_cdf(hist, 1000), 
+       streaming_histogram_cdf(hist, 2000), 
+       streaming_histogram_cdf(hist, 3000) 
+from (
+       select streaming_histogram_build(l_extendedprice * l_tax) hist 
+       from lineitem
+) tmpt;
+```
+
+## 更快的正则表达式
+实现了一组新的正则表达式函数，效率远高于原生的函数实现。
+```
+--
+-- re_match is like postres ~ operator, just faster.
+-- Find comment that contains "bad" package or account
+--
+select * from lineitem where re_match(l_comment, 
+    '.+(unusual|broken)\s+(packages?|accounts?).+'
+    );
+```
+
+# SQL 调用使用其他语言，如 python/java/go 
+作为一个例子，下面的查询计算各个 supplier year-over-year 销售总额的增长。在 `$PHI$ ... $PHI$` 之间的部分是使用python 
+```
+with run as (select
+    dg_utils.transducer_column_int8(1) as supplier,
+    dg_utils.transducer_column_int4(2) as year,
+    dg_utils.transducer_column_float8(3) as sales,
+    dg_utils.transducer_column_float8(4) as growth,
+    dg_utils.transducer($PHI$PhiExec python2
+import vitessedata.phi as phi
+
+phi.DeclareTypes('''
+//
+// BEGIN INPUT TYPES
+// supp int64
+// year int32
+// sales float64
+// END INPUT TYPES
+//
+// BEGIN OUTPUT TYPES
+// supp int64
+// year int32
+// sales float64
+// growth float64
+// END OUTPUT TYPES
+//
+''')
+
+if __name__ == '__main__':
+    supp = -1
+    year = 0
+    sales = 0
+    growth = 0
+    while True:
+        rec = phi.NextInput()
+        if not rec:
+            break
+
+        if rec[0] != supp:
+            # Save current, and output
+            supp = rec[0]
+            year = rec[1]
+            sales = rec[2]
+            outrec = [supp, year, sales, 0]
+            phi.WriteOutput(outrec)
+        else:
+            # this loop handles supplier made no sales in some years.
+            while year < rec[1]:
+                outrec = [supp, year, 0, -sales]
+                phi.WriteOutput(outrec)
+                year += 1
+                sales = 0
+            else:
+                outrec = [supp, year, rec[2], rec[2] - sales]
+                phi.WriteOutput(outrec)
+                sales = rec[2]
+
+    phi.WriteOutput(None)
+$PHI$), tmpt.*
+from (
+    select ss::int8, yy::int4, sum(price)::float8 as ysales from (
+        select l_suppkey ss, extract(year from l_commitdate) yy, l_extendedprice price
+        from lineitem
+    ) t
+    group by ss, yy
+    order by ss, yy
+) tmpt
+)
+
+select supplier, year, sales, growth from run;
+```

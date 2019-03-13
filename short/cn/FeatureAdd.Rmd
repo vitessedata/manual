@@ -3,9 +3,9 @@ title: "Deepgreen 与 Greenplum 相比增加的功能"
 author: "ftian"
 date: "December 7, 2018"
 output:
-  html_document:
-    number_sections: yes
   rticles::ctex:
+    number_sections: yes
+  html_document:
     number_sections: yes
 documentclass: ctexart
 ---
