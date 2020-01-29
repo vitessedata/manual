@@ -1,0 +1,67 @@
+# dg sync 
+
+dg sync can copy and sync data from one deepgreen cluster to another.
+The copy is incremental, meaning that only changes of data are copied.
+The source cluster is operational during the sync process.  After sync,
+the target cluster will contain a consistent snapshot of the source
+cluster.
+
+It is the recommended tool for making a backup production deepgreen 
+cluster.  It can also be used to make a "clone" (which later 
+can be synced) of the production cluster for data scientists as 
+dev/test environment.   dg sync is very efficient and will not 
+interfere with operations of source cluster.  
+
+## Setup 
+In general there is no limitations on the source cluster.  The sync
+target setup should,
+
+1. Target cluster should have exactly the same number of 
+   segments as source cluster.
+2. Target cluster should not have mirrors.
+3. deepgreen admin user need to have ssh access to every host of 
+   source cluster.
+4. Sync is cluster wise, i.e, dg sync will sync all databases
+   in the cluster.   It cannot sync a database/schema/table.
+5. External tables will sync DDL only.  User need to back up/clone
+   data in xdrive/loftd if necessary.
+
+
+## Design and Implementation Details.
+
+Here is the description of the dg sync algorithm.  Unless explicitly
+discussed, source cluster remains operational as usual.  Especially,
+we are very careful that dg sync will not cause **ANY WRITE** on source
+cluster, therefore, dg sync will not pose **ANY RISK** to source cluster.
+
+1. dg sync will make a initial copy of the source cluster to target
+   cluster.   It copies data and transaction logs of master and segments.
+   After initial sync, the target cluster has the bulk of data, but 
+   in general, at this moment the target cluster is not consistent.
+   Initial copy is only executed on the first time that dg sync runs.
+   dg sync is smart enough to skip temp files.
+2. dg sync execute an incremental copy of data and transaction logs.
+   Only changes of data are copied.   After this incremental copy, 
+   target cluster should be very close to source cluster, but still, 
+   it is not necessarily consistent.
+3. dg sync will ask source cluster to take a consist snapshot of the
+   distributed system.   Essentially the source cluster will suspend 
+   transactions from commit across master and all seg hosts (in correct
+   order).   Note that we do not abort transaction, only suspend 
+   transaction commits.   In fact, running queries can still execute 
+   (but won't be able to commit).   Also, we only ask source cluster to 
+   suspend transaction commit for a small amount of time (10 - 30 seconds).  Source 
+   cluster will resume transactions no matter what, even if dg sync
+   and/or target cluster crash/fail.
+4. dg sync copies the consistent snapshort to target cluster.  The data
+   need to copied in this step is generally small.  We only need data
+   changes after incremental sync.
+5. Resume transactions on source cluster.   If the previous step takes
+   too long, that is, source cluster timed out and resumed transaction 
+   on its own, this sync is considered failed.   We will restart 
+   from step 2.  But still, even the failed sync will bring data of 
+   target cluster "closer" to source cluster.
+6. dg sync will bring up the target cluster in utility mode, fixing
+   cluster informations such as ip address/port, etc.
+7. dg sync will bring up the target cluster in normal mode and perform
+   some integrity check.  
